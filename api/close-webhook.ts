@@ -36,49 +36,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     console.log('Creating Close.com lead for:', email);
 
-    // Prepare Close.com lead payload
-    const payload: CloseWebhookPayload = {
-      contact: {
-        name: answers.fullName,
-        emails: [{ email, type: 'office' }],
-        phones: answers.businessData?.phone ? [{ 
-          phone: answers.businessData.phone, 
-          type: 'office' 
-        }] : undefined,
-      },
-      custom: {
-        business_city: answers.city,
-        priority_services: answers.services,
-        service_radius: answers.radius,
-        response_speed: `${answers.responseTime}min`,
-        sms_capability: answers.smsCapability,
-        premium_pages: answers.premiumPages,
-        review_velocity: answers.reviewCount.toString(),
-        pipeline_score: result.score,
-        score_band: result.band,
-        top_moves: result.topMoves,
-        
-        // GBP Intelligence Data
-        gbp_rating: answers.businessData?.rating,
-        gbp_review_count: answers.businessData?.reviewCount,
-        gbp_phone: answers.businessData?.phone,
-        gbp_website: answers.businessData?.website,
-        gbp_place_id: answers.businessData?.placeId,
-        gbp_address: answers.businessData?.address,
-        
-        // SEO Intelligence Data
-        seo_missed_leads: answers.seoIntelligence?.totalMissedLeads,
-        seo_top_opportunity: answers.seoIntelligence?.topOpportunity,
-        seo_map_pack_rankings: answers.seoIntelligence?.rankings.filter(r => r.mapPackPosition !== null).length,
-        seo_keyword_count: answers.seoIntelligence?.rankings.length,
-      },
-      tags: [
-        'pipeline-100-lead',
-        `score-${result.band}`,
-        `services-${answers.services.join('-').toLowerCase()}`,
-        `zone-${answers.radius}mi`,
-        result.guaranteeStatus.includes('guarantee') ? 'guarantee-eligible' : 'baseline-service'
-      ]
+    // Prepare contact for Close.com lead
+    const contact = {
+      name: answers.fullName,
+      emails: [{ email, type: 'office' }],
+      ...(answers.businessData?.phone && {
+        phones: [{ phone: answers.businessData.phone, type: 'office' }]
+      })
     };
 
     // Create lead in Close.com (Close uses Basic auth)
@@ -92,7 +56,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       body: JSON.stringify({
         name: `Pipeline 100: ${answers.businessName} (${answers.city})`,
         description: `Score: ${result.score} | Band: ${result.band} | Services: ${answers.services.join(', ')}`,
-        contacts: [payload.contact],
+        contacts: [contact],
         status_id: 'stat_1uXDXW5xheJavWF8ge89acFKdt6spmsce4uohwGL4iH', // Potential status
       }),
     });
@@ -110,7 +74,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.log('Successfully created Close.com lead:', closeData.id);
 
     // Add tags to the lead
-    if (payload.tags && payload.tags.length > 0) {
+    const tags = [
+      'pipeline-100-lead',
+      `score-${result.band}`,
+      `services-${answers.services.join('-').toLowerCase()}`,
+      `zone-${answers.radius}mi`,
+      result.guaranteeStatus.includes('guarantee') ? 'guarantee-eligible' : 'baseline-service'
+    ];
+    
+    if (tags && tags.length > 0) {
       try {
         await fetch(`https://api.close.com/api/v1/lead/${closeData.id}/`, {
           method: 'PUT',
@@ -119,7 +91,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            tags: payload.tags
+            tags: tags
           }),
         });
       } catch (tagError) {
