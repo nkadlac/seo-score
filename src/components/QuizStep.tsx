@@ -369,7 +369,11 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
                 { value: '30', label: 'About 30 miles' },
                 { value: '45', label: '45+ miles (regional coverage)' }
               ].map((option) => (
-                <Card key={option.value} className="cursor-pointer transition-colors hover:bg-accent select-none">
+                <Card 
+                  key={option.value} 
+                  className="cursor-pointer transition-colors hover:bg-accent select-none"
+                  onClick={() => setValue('radius', parseInt(option.value))}
+                >
                   <CardContent className="flex items-center space-x-3 p-4">
                     <RadioGroupItem value={option.value} id={`radius-${option.value}`} />
                     <Label 
@@ -466,7 +470,11 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
                 { value: 'autoresponder', label: 'Just SMS autoresponder' },
                 { value: 'neither', label: 'No SMS setup yet' }
               ].map((option) => (
-                <Card key={option.value} className="cursor-pointer transition-colors hover:bg-accent select-none">
+                <Card 
+                  key={option.value} 
+                  className="cursor-pointer transition-colors hover:bg-accent select-none"
+                  onClick={() => setValue('smsCapability', option.value as any)}
+                >
                   <CardContent className="flex items-center space-x-3 p-4">
                     <RadioGroupItem value={option.value} id={`sms-${option.value}`} />
                     <Label 
@@ -506,7 +514,11 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
                 { value: 'some', label: 'Some services have pages' },
                 { value: 'none', label: 'No - just general service info' }
               ].map((option) => (
-                <Card key={option.value} className="cursor-pointer transition-colors hover:bg-accent select-none">
+                <Card 
+                  key={option.value} 
+                  className="cursor-pointer transition-colors hover:bg-accent select-none"
+                  onClick={() => setValue('premiumPages', option.value as any)}
+                >
                   <CardContent className="flex items-center space-x-3 p-4">
                     <RadioGroupItem value={option.value} id={`pages-${option.value}`} />
                     <Label 
@@ -547,7 +559,11 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
                 { value: '10', label: '8+ reviews' },
                 { value: '-1', label: 'Not sure' }
               ].map((option) => (
-                <Card key={option.value} className="cursor-pointer transition-colors hover:bg-accent select-none">
+                <Card 
+                  key={option.value} 
+                  className="cursor-pointer transition-colors hover:bg-accent select-none"
+                  onClick={() => setValue('reviewCount', parseInt(option.value))}
+                >
                   <CardContent className="flex items-center space-x-3 p-4">
                     <RadioGroupItem value={option.value} id={`review-${option.value}`} />
                     <Label 
