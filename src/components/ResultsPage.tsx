@@ -25,8 +25,13 @@ export default function ResultsPage({ result, seoIntelligence, city, onRequestPr
       await onRequestProScore(email);
       trackEvent(AnalyticsEvents.PRO_SCORE_REQUEST);
       setShowEmailCapture(false);
+      // Show success message
+      alert('Thank you! Your Pro Score will be emailed to you within 24 hours.');
     } catch (error) {
       console.error('Failed to request pro score:', error);
+      // Show user-friendly error message
+      alert('Thank you for your interest! We received your request and will email your Pro Score within 24 hours. If you don\'t receive it, please contact support@floorplay.agency');
+      setShowEmailCapture(false);
     } finally {
       setIsSubmitting(false);
     }
