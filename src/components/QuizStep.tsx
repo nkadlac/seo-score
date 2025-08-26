@@ -27,9 +27,92 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
   const [showCityField, setShowCityField] = useState(!!answers.businessName); // Show city field if business already entered
 
 
-  const { register, handleSubmit, formState: { errors }, setValue } = useForm({
-    defaultValues: answers
+  const { register, handleSubmit, formState: { errors }, setValue, watch, setError, clearErrors } = useForm({
+    defaultValues: {
+      ...answers,
+      services: answers.services || []
+    }
   });
+
+  // Watch form values for validation
+  const watchedServices = watch('services');
+  const watchedRadius = watch('radius');
+  const watchedResponseTime = watch('responseTime');
+  const watchedSmsCapability = watch('smsCapability');
+  const watchedPremiumPages = watch('premiumPages');
+  const watchedReviewCount = watch('reviewCount');
+
+  // Custom validation function for each step
+  const validateStep = (data: any) => {
+    const newErrors: any = {};
+
+    // Step 2 (services) is NOT required - users can skip it - NO VALIDATION
+
+    if (currentStep === 3) {
+      // Radius required - check both data and watched values
+      const radius = data.radius || watchedRadius;
+      if (!radius) {
+        newErrors.radius = { message: 'Please select your service radius' };
+      }
+    }
+
+    if (currentStep === 4) {
+      // Response time required - check both data and watched values
+      const responseTime = data.responseTime || watchedResponseTime;
+      if (!responseTime) {
+        newErrors.responseTime = { message: 'Please select your response time' };
+      }
+    }
+
+    if (currentStep === 5) {
+      // SMS capability required - check both data and watched values
+      const smsCapability = data.smsCapability || watchedSmsCapability;
+      if (!smsCapability) {
+        newErrors.smsCapability = { message: 'Please select your SMS capability' };
+      }
+    }
+
+    if (currentStep === 6) {
+      // Premium pages required - check both data and watched values
+      const premiumPages = data.premiumPages || watchedPremiumPages;
+      if (!premiumPages) {
+        newErrors.premiumPages = { message: 'Please select your service page status' };
+      }
+    }
+
+    if (currentStep === 7) {
+      // Review count required - check both data and watched values
+      const reviewCount = data.reviewCount !== undefined ? data.reviewCount : watchedReviewCount;
+      if (reviewCount === undefined || reviewCount === null) {
+        newErrors.reviewCount = { message: 'Please select your review count' };
+      }
+    }
+
+    return Object.keys(newErrors).length === 0 ? null : newErrors;
+  };
+
+  // Custom form submission handler with validation
+  const handleFormSubmit = (data: any) => {
+    // Clear any previous errors
+    clearErrors();
+    
+    // Custom validation for steps that need it
+    const validationErrors = validateStep(data);
+    
+    if (validationErrors) {
+      // Set custom errors using React Hook Form's setError
+      Object.keys(validationErrors).forEach(field => {
+        setError(field as any, {
+          type: 'required',
+          message: validationErrors[field].message
+        });
+      });
+      return; // Don't proceed if validation fails
+    }
+    
+    // If validation passes, proceed with the normal flow
+    onNext(data);
+  };
 
   useEffect(() => {
     // Initialize Google Places API
@@ -90,10 +173,33 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
         cityPart = afterDash.trim();
       }
     } else if (suggestion.includes(', ')) {
-      // Format: "Business Name, City, State" 
+      // Format: "M&P Concrete Coatings, North Baehr Road, Mequon, WI, USA"
       const parts = suggestion.split(', ');
-      if (parts.length >= 2) {
-        cityPart = parts.slice(-2).join(', '); // Last two parts: "City, State"
+      if (parts.length >= 3) {
+        // Look for city by finding the part before state abbreviation
+        for (let i = parts.length - 1; i >= 0; i--) {
+          const part = parts[i].trim();
+          // Check if this looks like a US state (2 uppercase letters)
+          if (part.match(/^[A-Z]{2}$/) && part !== 'USA') {
+            // The part before this should be the city
+            if (i > 0) {
+              const possibleCity = parts[i - 1].trim();
+              // Make sure it's not a street address component
+              if (!possibleCity.match(/\d+/) && !possibleCity.toLowerCase().includes('road') && 
+                  !possibleCity.toLowerCase().includes('street') && !possibleCity.toLowerCase().includes('avenue')) {
+                cityPart = `${possibleCity}, ${part}`;
+                break;
+              }
+            }
+          }
+        }
+        // Fallback to last two parts if no pattern matched
+        if (!cityPart && parts.length >= 2) {
+          cityPart = parts.slice(-2).join(', ');
+        }
+      } else if (parts.length === 2) {
+        // Simple "City, State" format
+        cityPart = suggestion.split(', ').slice(-2).join(', ');
       }
     }
     
@@ -220,7 +326,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {services.map((service) => (
-                <Card key={service} className="cursor-pointer transition-colors hover:bg-accent">
+                <Card key={service} className="cursor-pointer transition-colors hover:bg-accent select-none">
                   <CardContent className="flex items-center space-x-3 p-4">
                     <Checkbox
                       {...register('services')}
@@ -229,7 +335,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
                     />
                     <Label 
                       htmlFor={`service-${service}`}
-                      className="text-base font-medium cursor-pointer flex-1"
+                      className="text-base font-medium cursor-pointer flex-1 select-none"
                     >
                       {service}
                     </Label>
@@ -256,7 +362,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
             
             <RadioGroup
               onValueChange={(value) => setValue('radius', parseInt(value))}
-              defaultValue={answers.radius?.toString()}
+              value={watchedRadius?.toString() || ''}
               className="space-y-3"
             >
               {[
@@ -264,12 +370,12 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
                 { value: '30', label: 'About 30 miles' },
                 { value: '45', label: '45+ miles (regional coverage)' }
               ].map((option) => (
-                <Card key={option.value} className="cursor-pointer transition-colors hover:bg-accent">
+                <Card key={option.value} className="cursor-pointer transition-colors hover:bg-accent select-none">
                   <CardContent className="flex items-center space-x-3 p-4">
                     <RadioGroupItem value={option.value} id={`radius-${option.value}`} />
                     <Label 
                       htmlFor={`radius-${option.value}`}
-                      className="text-base cursor-pointer flex-1"
+                      className="text-base cursor-pointer flex-1 select-none"
                     >
                       {option.label}
                     </Label>
@@ -305,13 +411,13 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
                 { value: '1440', label: 'Same day', badge: 'OK', badgeVariant: 'secondary' },
                 { value: '2880', label: 'It varies', badge: null, badgeVariant: null }
               ].map((option) => (
-                <Card key={option.value} className="cursor-pointer transition-colors hover:bg-accent">
+                <Card key={option.value} className="cursor-pointer transition-colors hover:bg-accent select-none">
                   <CardContent className="flex items-center justify-between p-4">
                     <div className="flex items-center space-x-3">
                       <RadioGroupItem value={option.value} id={`response-${option.value}`} />
                       <Label 
                         htmlFor={`response-${option.value}`}
-                        className="text-base cursor-pointer"
+                        className="text-base cursor-pointer select-none"
                       >
                         {option.label}
                       </Label>
@@ -357,12 +463,12 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
                 { value: 'autoresponder', label: 'Just SMS autoresponder' },
                 { value: 'neither', label: 'No SMS setup yet' }
               ].map((option) => (
-                <Card key={option.value} className="cursor-pointer transition-colors hover:bg-accent">
+                <Card key={option.value} className="cursor-pointer transition-colors hover:bg-accent select-none">
                   <CardContent className="flex items-center space-x-3 p-4">
                     <RadioGroupItem value={option.value} id={`sms-${option.value}`} />
                     <Label 
                       htmlFor={`sms-${option.value}`}
-                      className="text-base cursor-pointer flex-1"
+                      className="text-base cursor-pointer flex-1 select-none"
                     >
                       {option.label}
                     </Label>
@@ -397,12 +503,12 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
                 { value: 'some', label: 'Some services have pages' },
                 { value: 'none', label: 'No - just general service info' }
               ].map((option) => (
-                <Card key={option.value} className="cursor-pointer transition-colors hover:bg-accent">
+                <Card key={option.value} className="cursor-pointer transition-colors hover:bg-accent select-none">
                   <CardContent className="flex items-center space-x-3 p-4">
                     <RadioGroupItem value={option.value} id={`pages-${option.value}`} />
                     <Label 
                       htmlFor={`pages-${option.value}`}
-                      className="text-base cursor-pointer flex-1"
+                      className="text-base cursor-pointer flex-1 select-none"
                     >
                       {option.label}
                     </Label>
@@ -438,12 +544,12 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
                 { value: '10', label: '8+ reviews' },
                 { value: '-1', label: 'Not sure' }
               ].map((option) => (
-                <Card key={option.value} className="cursor-pointer transition-colors hover:bg-accent">
+                <Card key={option.value} className="cursor-pointer transition-colors hover:bg-accent select-none">
                   <CardContent className="flex items-center space-x-3 p-4">
                     <RadioGroupItem value={option.value} id={`review-${option.value}`} />
                     <Label 
                       htmlFor={`review-${option.value}`}
-                      className="text-base cursor-pointer flex-1"
+                      className="text-base cursor-pointer flex-1 select-none"
                     >
                       {option.label}
                     </Label>
@@ -465,7 +571,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
 
   return (
     <div className="max-w-2xl mx-auto">
-      <form onSubmit={handleSubmit(onNext)} className="space-y-8">
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
         {renderStepContent()}
         
         <div className="flex justify-between pt-8">

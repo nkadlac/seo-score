@@ -118,6 +118,8 @@ function App() {
           <Card className="p-8">
             <ResultsPage
               result={result}
+              seoIntelligence={answers?.seoIntelligence}
+              city={answers?.city}
               onRequestProScore={handleProScoreRequest}
             />
           </Card>

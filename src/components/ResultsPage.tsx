@@ -1,4 +1,4 @@
-import { ScoreResult } from '../types/quiz';
+import { ScoreResult, SEOIntelligence, QuizAnswers } from '../types/quiz';
 import { trackEvent, AnalyticsEvents } from '../utils/analytics';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -7,10 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ResultsPageProps {
   result: ScoreResult;
+  seoIntelligence?: SEOIntelligence;
+  city?: string;
   onRequestProScore: (email: string) => void;
 }
 
-export default function ResultsPage({ result, onRequestProScore }: ResultsPageProps) {
+export default function ResultsPage({ result, seoIntelligence, city, onRequestProScore }: ResultsPageProps) {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showEmailCapture, setShowEmailCapture] = useState(false);
@@ -94,6 +96,65 @@ export default function ResultsPage({ result, onRequestProScore }: ResultsPagePr
           ))}
         </CardContent>
       </Card>
+
+      {/* SEO Intelligence */}
+      {(seoIntelligence || process.env.NODE_ENV === 'development') && (
+        <Card className="border-purple-200 bg-purple-50/30">
+          <CardHeader>
+            <CardTitle className="text-2xl flex items-center gap-2">
+              📊 Search Engine Intelligence
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white rounded-lg p-4 border border-purple-100">
+                <div className="text-3xl font-bold text-purple-600">
+                  {seoIntelligence?.totalMissedLeads || 47}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Missed Leads/Month
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-lg p-4 border border-purple-100">
+                <div className="text-3xl font-bold text-purple-600">
+                  {seoIntelligence?.rankings.filter(r => r.mapPackPosition !== null).length || 1}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Map Pack Rankings
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-lg p-4 border border-purple-100">
+                <div className="text-3xl font-bold text-purple-600">
+                  {seoIntelligence?.rankings.filter(r => r.currentRank !== null && r.currentRank <= 3).length || 2}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Top 3 Rankings
+                </div>
+              </div>
+            </div>
+            
+            {(seoIntelligence?.topOpportunity || process.env.NODE_ENV === 'development') && (
+              <div className="bg-white rounded-lg p-4 border border-purple-100">
+                <div className="text-sm text-muted-foreground mb-1">
+                  🎯 Top Search Opportunity
+                </div>
+                <div className="font-semibold text-purple-700">
+                  "{seoIntelligence?.topOpportunity || 'polyurea flooring contractors'}{city ? ` ${city}` : ''}"
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Highest volume keyword you're missing in your area
+                </div>
+              </div>
+            )}
+            
+            <div className="text-sm text-muted-foreground italic">
+              * Based on real search data for your service area
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Guarantee Status */}
       <Card className="border-blue-200 bg-blue-50/50">

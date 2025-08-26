@@ -1,52 +1,101 @@
 import { SEORanking } from '../types/quiz';
 
 /**
- * Maps quiz services to their corresponding SEO keywords
+ * Comprehensive keyword strategy covering the entire buyer journey
+ * Maps quiz services to high-value SEO keywords across multiple intent levels
  */
 export const getKeywordsForServices = (services: string[], city: string): string[] => {
   // Clean city name (remove state abbreviation for keyword searches)
   const cleanCity = city.split(',')[0].trim();
   
+  // High-Intent Contractor/Service Searches (Highest Conversion)
+  const highIntentKeywords = [
+    `${cleanCity} garage floor contractors`,
+    `concrete coating contractors ${cleanCity}`,
+    `epoxy flooring installers ${cleanCity}`,
+    `garage floor coating companies ${cleanCity}`,
+    `flooring contractors near me`,
+    `best concrete coating company ${cleanCity}`
+  ];
+
+  // Problem-Based Searches (High Convert - People Need Solutions)
+  const problemBasedKeywords = [
+    `cracked garage floor repair ${cleanCity}`,
+    `garage floor peeling ${cleanCity}`,
+    `concrete floor sealing ${cleanCity}`,
+    `oil stain garage floor ${cleanCity}`,
+    `garage floor makeover ${cleanCity}`,
+    `concrete resurfacing ${cleanCity}`
+  ];
+
+  // Commercial Keywords (Higher Value Jobs)
+  const commercialKeywords = [
+    `warehouse floor coating ${cleanCity}`,
+    `industrial epoxy flooring ${cleanCity}`,
+    `commercial concrete sealing ${cleanCity}`,
+    `retail floor coating ${cleanCity}`
+  ];
+
+  // Service-Specific Keywords Based on User's Selected Services
   const serviceKeywordMap: Record<string, string[]> = {
     'Polyurea': [
       `polyurea coating ${cleanCity}`,
       `polyurea flooring ${cleanCity}`,
-      `polyurea garage floor ${cleanCity}`
+      `polyurea garage floor ${cleanCity}`,
+      `polyurea contractors ${cleanCity}`,
+      `best polyurea coating ${cleanCity}`
     ],
     'Polyaspartic': [
       `polyaspartic coating ${cleanCity}`,
       `polyaspartic flooring ${cleanCity}`,
-      `polyaspartic garage floor ${cleanCity}`
+      `polyaspartic garage floor ${cleanCity}`,
+      `polyaspartic vs epoxy ${cleanCity}`,
+      `one day garage floor ${cleanCity}`
     ],
     'Decorative Concrete': [
       `decorative concrete ${cleanCity}`,
       `stamped concrete ${cleanCity}`,
-      `decorative concrete flooring ${cleanCity}`
+      `decorative concrete flooring ${cleanCity}`,
+      `concrete staining ${cleanCity}`,
+      `decorative garage floors ${cleanCity}`
     ],
     'Epoxy': [
       `epoxy flooring ${cleanCity}`,
       `epoxy garage floor ${cleanCity}`,
-      `epoxy coating ${cleanCity}`
+      `epoxy coating ${cleanCity}`,
+      `garage epoxy installers ${cleanCity}`,
+      `residential epoxy flooring ${cleanCity}`
     ]
   };
 
-  // Always search for these baseline keywords (all businesses get these)
-  const baselineKeywords = [
-    `garage flooring ${cleanCity}`,
-    `concrete sealing ${cleanCity}`,
-    `garage floor coating ${cleanCity}`
+  // Research/Comparison Keywords (Early Buyer Journey)
+  const researchKeywords = [
+    `garage floor coating cost ${cleanCity}`,
+    `epoxy vs polyurea flooring ${cleanCity}`,
+    `best garage floor coating ${cleanCity}`,
+    `garage floor options ${cleanCity}`,
+    `durable garage flooring ${cleanCity}`
+  ];
+
+  // Always include high-impact baseline keywords
+  const coreKeywords = [
+    ...highIntentKeywords.slice(0, 3), // Top 3 contractor searches
+    ...problemBasedKeywords.slice(0, 3), // Top 3 problem searches
+    ...commercialKeywords.slice(0, 2), // Top 2 commercial searches
+    ...researchKeywords.slice(0, 2) // Top 2 research searches
   ];
 
   // Add service-specific keywords based on selected services
-  const serviceKeywords: string[] = [];
+  const selectedServiceKeywords: string[] = [];
   services.forEach(service => {
     if (serviceKeywordMap[service]) {
-      // Add primary keyword for each service (first in array)
-      serviceKeywords.push(serviceKeywordMap[service][0]);
+      // Add top 2-3 keywords per selected service
+      selectedServiceKeywords.push(...serviceKeywordMap[service].slice(0, 3));
     }
   });
 
-  return [...baselineKeywords, ...serviceKeywords];
+  // Combine all keywords (15-20 total for comprehensive analysis)
+  return [...coreKeywords, ...selectedServiceKeywords];
 };
 
 /**
