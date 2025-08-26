@@ -1,5 +1,4 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { CloseWebhookPayload, QuizAnswers, ScoreResult } from '../src/types/quiz';
 
 /**
  * Close.com CRM Integration
@@ -13,8 +12,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const { answers, result, email }: {
-      answers: QuizAnswers;
-      result: ScoreResult;
+      answers: any;
+      result: any;
       email: string;
     } = req.body;
     
@@ -36,16 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     console.log('Creating Close.com lead for:', email);
 
-    // Prepare contact for Close.com lead
-    const contact = {
-      name: answers.fullName,
-      emails: [{ email, type: 'office' }],
-      ...(answers.businessData?.phone && {
-        phones: [{ phone: answers.businessData.phone, type: 'office' }]
-      })
-    };
-
-    // Create lead in Close.com (Close uses Basic auth)
+    // Create lead in Close.com using the exact format that works
     const auth = btoa(closeApiKey + ':');
     const closeResponse = await fetch('https://api.close.com/api/v1/lead/', {
       method: 'POST',
@@ -56,8 +46,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       body: JSON.stringify({
         name: `Pipeline 100: ${answers.businessName} (${answers.city})`,
         description: `Score: ${result.score} | Band: ${result.band} | Services: ${answers.services.join(', ')}`,
-        contacts: [contact],
-        status_id: 'stat_1uXDXW5xheJavWF8ge89acFKdt6spmsce4uohwGL4iH', // Potential status
+        contacts: [{
+          name: answers.fullName,
+          emails: [{ email, type: 'office' }]
+        }]
       }),
     });
 
@@ -73,32 +65,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     console.log('Successfully created Close.com lead:', closeData.id);
 
-    // Add tags to the lead
-    const tags = [
-      'pipeline-100-lead',
-      `score-${result.band}`,
-      `services-${answers.services.join('-').toLowerCase()}`,
-      `zone-${answers.radius}mi`,
-      result.guaranteeStatus.includes('guarantee') ? 'guarantee-eligible' : 'baseline-service'
-    ];
-    
-    if (tags && tags.length > 0) {
-      try {
-        await fetch(`https://api.close.com/api/v1/lead/${closeData.id}/`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Basic ${auth}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            tags: tags
-          }),
-        });
-      } catch (tagError) {
-        console.warn('Failed to add tags to Close.com lead:', tagError);
-        // Don't fail the whole request for tag errors
-      }
-    }
+    // Add tags to the lead (if needed in future)
+    // For now, skip tags to ensure basic functionality works
 
     return res.status(200).json({
       success: true,
