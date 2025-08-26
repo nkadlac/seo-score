@@ -410,7 +410,11 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
                 { value: '1440', label: 'Same day', badge: 'OK', badgeVariant: 'secondary' },
                 { value: '2880', label: 'It varies', badge: null, badgeVariant: null }
               ].map((option) => (
-                <Card key={option.value} className="cursor-pointer transition-colors hover:bg-accent select-none">
+                <Card 
+                  key={option.value} 
+                  className="cursor-pointer transition-colors hover:bg-accent select-none"
+                  onClick={() => setValue('responseTime', parseInt(option.value))}
+                >
                   <CardContent className="flex items-center justify-between p-4">
                     <div className="flex items-center space-x-3">
                       <RadioGroupItem value={option.value} id={`response-${option.value}`} />
