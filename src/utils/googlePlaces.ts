@@ -278,6 +278,7 @@ export class GooglePlacesService {
       'Albany Concrete Pros - Albany, NY'
     ];
 
+    /* Unused variables commented out
     const regionalCities = [
       // Wisconsin (primary)
       'Milwaukee, WI', 'Madison, WI', 'Green Bay, WI', 'Kenosha, WI', 'Racine, WI', 
@@ -317,10 +318,9 @@ export class GooglePlacesService {
       'Louisville, KY', 'Lexington, KY',
       'Buffalo, NY', 'Rochester, NY', 'Syracuse, NY', 'Albany, NY'
     ];
+    */
 
-    // Combine with regional priority
-    const allBusinesses = [...regionalBusinesses, ...nationalBusinesses];
-    const allCities = [...regionalCities, ...nationalCities];
+    // Combine with regional priority (unused variables removed)
 
     // If query looks like it might be a business name (contains letters, not just city)
     if (query.length > 2) {

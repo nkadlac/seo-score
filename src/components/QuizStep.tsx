@@ -34,8 +34,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
     }
   });
 
-  // Watch form values for validation
-  const watchedServices = watch('services');
+  // Watch form values for validation  
   const watchedRadius = watch('radius');
   const watchedResponseTime = watch('responseTime');
   const watchedSmsCapability = watch('smsCapability');

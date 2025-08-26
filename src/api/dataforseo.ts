@@ -6,30 +6,7 @@ interface DataForSEOConfig {
   baseUrl: string;
 }
 
-interface DataForSEOLocalPackResult {
-  keyword: string;
-  location_code: number;
-  language_code: string;
-  items: Array<{
-    type: string;
-    rank_group: number;
-    rank_absolute: number;
-    position: string;
-    xpath: string;
-    domain: string;
-    title: string;
-    url: string;
-    description: string;
-    phone?: string;
-    address?: string;
-    rating?: {
-      rating_type: string;
-      value: number;
-      votes_count: number;
-    };
-    place_id?: string;
-  }>;
-}
+// Removed unused interface
 
 interface DataForSEOSearchVolumeResult {
   keyword: string;

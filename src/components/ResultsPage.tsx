@@ -1,4 +1,4 @@
-import { ScoreResult, SEOIntelligence, QuizAnswers } from '../types/quiz';
+import { ScoreResult, SEOIntelligence } from '../types/quiz';
 import { trackEvent, AnalyticsEvents } from '../utils/analytics';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';

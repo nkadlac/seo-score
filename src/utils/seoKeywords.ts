@@ -236,7 +236,7 @@ export const checkSEORankings = async (
     console.error('Failed to get real SEO rankings, falling back to mock data:', error);
     
     // Fallback to mock data if API fails
-    return keywords.map((keyword, index) => {
+    return keywords.map((keyword) => {
       const searchVolume = getEstimatedSearchVolume(keyword);
       
       // Mock some rankings (fallback)
