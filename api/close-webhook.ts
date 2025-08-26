@@ -93,15 +93,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         name: `Pipeline 100: ${answers.businessName} (${answers.city})`,
         description: `Score: ${result.score} | Band: ${result.band} | Services: ${answers.services.join(', ')}`,
         contacts: [payload.contact],
-        custom: Object.fromEntries([
-          ['cf_dkzXWsG8XURLpM2jhec1MxSdy1MNXj649awQLJOwhJt', answers.businessName], // Company Name
-          ['cf_X2wd1gXdMqVEGgpnDq1wWQs5BWpdJJ1c9BLrGcGJZ7N', answers.city], // Company City
-          ['cf_HT8ccLEkuvMEEBV7WstnTZQoY6dJlnpC4QEPUadvFdw', 'Construction'], // Industry
-          ['cf_DL209Bmqipm91l59MeQNu1GLqu2Y2vxIRvQQQFXMSHI', `${answers.radius}mi radius`], // Company Size (repurposed)
-          ['cf_1WvfPBArTXpA1i5swai7sV6OeD5MU8mHyvGgRJ94HCN', `Pipeline Score: ${result.score} (${result.band})`], // Custom Field
-          answers.businessData?.website ? ['cf_MkPi3BcTN5nMkFVQQKOn4rU71jzkaFyYAoDPj5rpnCJ', answers.businessData.website] : null, // Company Website
-          ['cf_95HDTecROgvLw8XdsFp6MU0U2fxOyrjLe0DZcB6Lihj', `Services: ${answers.services.join(', ')} | Response: ${answers.responseTime}min | SMS: ${answers.smsCapability}`], // Socials (repurposed for service details)
-        ].filter(entry => entry !== null)),
+        // Modern approach: use custom.FIELD_ID format
+        'custom.cf_dkzXWsG8XURLpM2jhec1MxSdy1MNXj649awQLJOwhJt': answers.businessName, // Company Name
+        'custom.cf_X2wd1gXdMqVEGgpnDq1wWQs5BWpdJJ1c9BLrGcGJZ7N': answers.city, // Company City
+        'custom.cf_HT8ccLEkuvMEEBV7WstnTZQoY6dJlnpC4QEPUadvFdw': 'Construction', // Industry
+        'custom.cf_DL209Bmqipm91l59MeQNu1GLqu2Y2vxIRvQQQFXMSHI': `${answers.radius}mi radius`, // Company Size (repurposed)
+        'custom.cf_1WvfPBArTXpA1i5swai7sV6OeD5MU8mHyvGgRJ94HCN': `Pipeline Score: ${result.score} (${result.band})`, // Custom Field
+        ...(answers.businessData?.website && {
+          'custom.cf_MkPi3BcTN5nMkFVQQKOn4rU71jzkaFyYAoDPj5rpnCJ': answers.businessData.website // Company Website
+        }),
+        'custom.cf_95HDTecROgvLw8XdsFp6MU0U2fxOyrjLe0DZcB6Lihj': `Services: ${answers.services.join(', ')} | Response: ${answers.responseTime}min | SMS: ${answers.smsCapability}`, // Socials (repurposed for service details)
         status_id: 'stat_1uXDXW5xheJavWF8ge89acFKdt6spmsce4uohwGL4iH', // Potential status
       }),
     });
