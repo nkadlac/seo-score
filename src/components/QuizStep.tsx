@@ -438,7 +438,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
             
             <RadioGroup
               onValueChange={(value) => setValue('responseTime', parseInt(value))}
-              defaultValue={answers.responseTime?.toString()}
+              value={watchedResponseTime?.toString() || ''}
               className="space-y-3"
             >
               {[
@@ -494,7 +494,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
             
             <RadioGroup
               onValueChange={(value) => setValue('smsCapability', value as any)}
-              defaultValue={answers.smsCapability}
+              value={watchedSmsCapability || ''}
               className="space-y-3"
             >
               {[
@@ -539,7 +539,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
             
             <RadioGroup
               onValueChange={(value) => setValue('premiumPages', value as any)}
-              defaultValue={answers.premiumPages}
+              value={watchedPremiumPages || ''}
               className="space-y-3"
             >
               {[
@@ -583,7 +583,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
             
             <RadioGroup
               onValueChange={(value) => setValue('reviewCount', parseInt(value))}
-              defaultValue={answers.reviewCount?.toString()}
+              value={watchedReviewCount?.toString() || ''}
               className="space-y-3"
             >
               {[
