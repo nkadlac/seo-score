@@ -132,22 +132,7 @@ export default function ResultsPage({ result, seoIntelligence, city, onRequestPr
         <p className="text-muted-foreground text-lg mb-8">{result.forecast}</p>
       </div>
 
-      {/* Top 3 Moves */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Your Top 3 Moves</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {result.topMoves.map((move, index) => (
-            <div key={index} className="flex items-start">
-              <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold mr-4">
-                {index + 1}
-              </div>
-              <p className="text-lg leading-relaxed">{move}</p>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      {/* Pipeline Section comes next */}
 
       {/* Current vs Potential Section */}
       <div className="space-y-4">
@@ -219,6 +204,34 @@ export default function ResultsPage({ result, seoIntelligence, city, onRequestPr
           </Card>
         </div>
       </div>
+
+      {/* Top 3 Moves (with labels) */}
+      {(() => {
+        const labelForMove = (move: string): string => {
+          const m = move.toLowerCase();
+          if (m.includes('missed-call') || m.includes('autoresponder') || m.includes('text-back')) return 'Speed to contact';
+          if (m.includes('service pages') || m.includes('polyurea') || m.includes('decorative') || m.includes('epoxy') || m.includes('city pages') || m.includes('publish 6 city')) return 'Content';
+          if (m.includes('review')) return 'Build Trust';
+          return 'Optimization';
+        };
+        return (
+          <div className="space-y-3">
+            <h2 className="text-2xl font-semibold">Your Top 3 To‑Do’s</h2>
+            <p className="text-muted-foreground">These are your highest‑leverage activities to improve your leadflow</p>
+            <Card className="bg-neutral-50">
+              <CardContent className="pt-6 space-y-4">
+                <h3 className="text-xl font-extrabold text-blue-600">Do these in 14 days</h3>
+                {result.topMoves.map((move, index) => (
+                  <div key={index} className="flex items-start gap-3 text-blue-700">
+                    <div className="w-8 h-8 rounded-sm bg-blue-600 text-white flex items-center justify-center font-bold">{index + 1}</div>
+                    <p className="text-lg leading-relaxed"><span className="font-semibold">{labelForMove(move)}:</span> {move}</p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+        );
+      })()}
 
       {/* SEO Intelligence */}
       {(seoIntelligence || process.env.NODE_ENV === 'development') && (
