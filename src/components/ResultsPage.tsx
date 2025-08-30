@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getForecast } from '@/utils/scoring';
 
 interface ResultsPageProps {
   result: ScoreResult;
@@ -67,6 +68,52 @@ export default function ResultsPage({ result, seoIntelligence, city, onRequestPr
     }
   };
 
+  // Helper: parse the forecast string into 60-day leads and 90-day pipeline
+  const parseForecast = (forecast: string): { leads60: string; pipeline90: string } => {
+    // Expected format examples:
+    // "60-day: 18-25 leads, 90-day: $45k-65k pipeline"
+    const leadsMatch = forecast.match(/60-day:\s*([^,]+)\s*leads/i);
+    const pipeMatch = forecast.match(/90-day:\s*([^,]+)\s*pipeline/i);
+    return {
+      leads60: leadsMatch ? leadsMatch[1].trim() : '—',
+      pipeline90: pipeMatch ? pipeMatch[1].trim() : '—',
+    };
+  };
+
+  // Helper: choose a representative "target" score for the next band up
+  const getNextBandTargetScore = (currentScore: number): number => {
+    if (currentScore < 55) return 60; // target mid-orange
+    if (currentScore < 70) return 75; // target mid-yellow
+    if (currentScore < 85) return 88; // target within green
+    return currentScore; // already green
+  };
+
+  // Helper: compute current leads for a given ranking using CTR tables
+  const computeCurrentLeads = (searchVolume: number, currentRank: number | null, mapPackPosition: number | null): number => {
+    const organicCTR: Record<number, number> = {
+      1: 0.284, 2: 0.152, 3: 0.099, 4: 0.067, 5: 0.051, 6: 0.041, 7: 0.034, 8: 0.028, 9: 0.025, 10: 0.022,
+    };
+    const mapPackCTR: Record<number, number> = { 1: 0.446, 2: 0.156, 3: 0.098 };
+    if (mapPackPosition && mapPackPosition <= 3) return Math.round(searchVolume * (mapPackCTR[mapPackPosition] || 0));
+    if (currentRank && currentRank <= 10) return Math.round(searchVolume * (organicCTR[currentRank] || 0));
+    return 0;
+  };
+
+  // Build data for Current vs Potential section
+  const forecastCurrent = parseForecast(result.forecast);
+  const nextScore = getNextBandTargetScore(result.score);
+  const forecastPotential = parseForecast(getForecast(nextScore));
+
+  const worstRanking = seoIntelligence?.rankings
+    ? [...seoIntelligence.rankings].sort((a, b) => b.missedLeadsPerMonth - a.missedLeadsPerMonth)[0]
+    : undefined;
+  const worstCurrentLeads = worstRanking
+    ? computeCurrentLeads(worstRanking.searchVolume, worstRanking.currentRank, worstRanking.mapPackPosition)
+    : 0;
+  const worstKeywordLabel = worstRanking?.keyword || (city ? `epoxy flooring ${city}` : 'priority keyword');
+
+  const topMapPack = seoIntelligence?.rankings?.find(r => r.mapPackPosition && r.mapPackPosition <= 3);
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Score Display */}
@@ -101,6 +148,77 @@ export default function ResultsPage({ result, seoIntelligence, city, onRequestPr
           ))}
         </CardContent>
       </Card>
+
+      {/* Current vs Potential Section */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-semibold">Your 60-Day Pipeline for {city || 'your service area'}</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Current */}
+          <Card className="border-red-200 bg-red-50/50">
+            <CardHeader className="pb-2">
+              <div className="text-xs font-bold text-red-600">NOW</div>
+              <CardTitle>Current Pipeline</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-start gap-2">
+                <span>✔️</span>
+                <span>Score {result.score} ({result.band})</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span>✔️</span>
+                <span>{forecastCurrent.leads60} leads</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span>✔️</span>
+                <span>{forecastCurrent.pipeline90} Pipeline</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span>✔️</span>
+                <span>{worstCurrentLeads} leads for "{worstKeywordLabel}"</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span>{topMapPack ? '✅' : '⚠️'}</span>
+                <span>
+                  {topMapPack
+                    ? `Top ${topMapPack.mapPackPosition} placement for local flooring searches`
+                    : 'Google Business Profile not in top 3 for local searches'}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Potential */}
+          <Card className="border-green-200 bg-green-50/50">
+            <CardHeader className="pb-2">
+              <div className="text-xs font-bold text-green-600">AFTER</div>
+              <CardTitle>Potential Pipeline</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-start gap-2">
+                <span>✅</span>
+                <span>Score ≈ {nextScore} (target)</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span>✅</span>
+                <span>{forecastPotential.leads60} leads</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span>✅</span>
+                <span>{forecastPotential.pipeline90} Pipeline</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span>✅</span>
+                <span>5–8 leads for "{worstKeywordLabel}"</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span>✅</span>
+                <span>Top 3 placement for local flooring searches</span>
+              </div>
+              <div className="text-xs text-muted-foreground">* Estimates based on your score band and local market dynamics</div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       {/* SEO Intelligence */}
       {(seoIntelligence || process.env.NODE_ENV === 'development') && (
