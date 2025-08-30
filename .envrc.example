@@ -1,0 +1,25 @@
+# direnv example for Pipeline 100 Readiness Check
+# Copy to .envrc (untracked) and run `direnv allow`.
+
+# Client (exposed to Vite build)
+export VITE_GOOGLE_PLACES_API_KEY="your_google_places_api_key"
+export VITE_FATHOM_SITE_ID="your_fathom_site_id"
+
+# Server (Vercel / serverless only)
+export CLOSE_API_KEY="your_close_com_api_key"
+export KIT_API_KEY="your_kit_com_api_key"
+export DATAFORSEO_LOGIN="your_dataforseo_email"
+export DATAFORSEO_PASSWORD="your_dataforseo_api_password"
+
+# Firecrawl MCP (optional, for MCP clients)
+export FIRECRAWL_API_KEY="your_firecrawl_api_key"
+# e.g., npx mcp-server-firecrawl or an installed binary name
+export FIRECRAWL_MCP_COMMAND="npx mcp-server-firecrawl"
+
+# Perplexity MCP (optional)
+export PERPLEXITY_API_KEY="your_perplexity_api_key"
+# e.g., npx mcp-server-perplexity or an installed binary name
+export PERPLEXITY_MCP_COMMAND="npx mcp-server-perplexity"
+
+# Optional Node/Vite tuning
+export NODE_ENV=development

@@ -19,7 +19,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     // Test 1: Try Basic auth format (Close standard)
     console.log('Testing Close API with Basic auth...');
-    const auth = btoa(closeApiKey + ':');
+    const auth = Buffer.from(closeApiKey + ':').toString('base64');
     console.log('Auth header will be:', `Basic ${auth}`);
     const basicResponse = await fetch('https://api.close.com/api/v1/me/', {
       method: 'GET',

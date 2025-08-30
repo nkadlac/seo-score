@@ -18,7 +18,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.log('Testing minimal Close.com lead creation...');
 
     // Minimal Close.com lead creation
-    const auth = btoa(closeApiKey + ':');
+    const auth = Buffer.from(closeApiKey + ':').toString('base64');
     const closeResponse = await fetch('https://api.close.com/api/v1/lead/', {
       method: 'POST',
       headers: {

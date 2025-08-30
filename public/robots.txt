@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://pipeline.floorplay.agency/sitemap.xml

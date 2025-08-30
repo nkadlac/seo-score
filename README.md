@@ -37,8 +37,8 @@ Required environment variables:
 CLOSE_API_KEY=your_close_com_api_key
 KIT_API_KEY=your_kit_com_api_key
 
-# Analytics
-FATHOM_SITE_ID=your_fathom_site_id
+# Analytics (client)
+VITE_FATHOM_SITE_ID=your_fathom_site_id
 
 # Optional: Development
 NODE_ENV=development
@@ -49,6 +49,14 @@ NODE_ENV=development
 1. **Close.com API**: Settings → API Keys → Create new key
 2. **Kit.com API**: Account → API → Generate personal access token  
 3. **Fathom Analytics**: Settings → Sites → [Your Site] → Site ID
+
+### Using direnv (optional)
+Keep secrets out of the repo and auto‑load them per directory.
+
+1. Install direnv: `brew install direnv` and hook it into your shell per instructions.
+2. Copy `.envrc.example` to `.envrc` and fill in values.
+3. Allow it in the repo root: `direnv allow`.
+4. For MCP/Firecrawl, set `FIRECRAWL_API_KEY` and `FIRECRAWL_MCP_COMMAND` as shown in `.envrc.example`.
 
 ## Project Structure
 
@@ -99,6 +107,22 @@ npm run lint         # Run ESLint
 npm run type-check   # Run TypeScript compiler
 npm test             # Run test suite
 ```
+
+### Local Dev (frontend + API)
+Use direnv to load env vars and run the full stack with Vercel’s local runtime so `/api/*` endpoints work in dev.
+
+```bash
+# one time
+brew install direnv && echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc
+cp .envrc.example .envrc && direnv allow
+
+# run frontend + serverless functions locally
+vercel dev
+```
+
+Notes:
+- Keep client-exposed vars prefixed with `VITE_`.
+- If you use the Firecrawl MCP, ensure `FIRECRAWL_API_KEY` and `FIRECRAWL_MCP_COMMAND` are set (see `.envrc.example`).
 
 ### Key Features
 
@@ -184,6 +208,8 @@ npm run test:e2e
 - **Business Logic**: See `/docs/scoring-algorithm.md`
 - **API Integration**: See `/docs/integrations.md`
 - **Copy & Messaging**: See `/docs/copy-framework.md`
+- **MCP: Firecrawl Setup**: See `docs/mcp-firecrawl.md` (plus `scripts/run-firecrawl-mcp.sh` and `mcp.example.json`)
+- **MCP: Perplexity Setup**: See `docs/mcp-perplexity.md` (plus `scripts/run-perplexity-mcp.sh` and `mcp.example.json`)
 
 ## Contributing
 

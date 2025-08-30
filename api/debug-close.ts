@@ -10,7 +10,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     // Test btoa function with trimmed key
     const trimmedKey = closeApiKey.trim();
-    const auth = btoa(trimmedKey + ':');
+    const auth = Buffer.from(trimmedKey + ':').toString('base64');
     
     return res.status(200).json({
       raw_key_preview: closeApiKey.substring(0, 15) + '...',
@@ -19,7 +19,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       trimmed_key_length: trimmedKey.length,
       auth_header: `Basic ${auth}`,
       auth_length: auth.length,
-      btoa_test: btoa('test:'),
+      btoa_test: Buffer.from('test:').toString('base64'),
       has_newline: closeApiKey !== trimmedKey,
       key_chars: Array.from(closeApiKey).map(c => c.charCodeAt(0))
     });

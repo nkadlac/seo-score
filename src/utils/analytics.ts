@@ -16,12 +16,24 @@ declare global {
 }
 
 export const trackEvent = (event: AnalyticsEvents, value?: number) => {
-  if (typeof window !== 'undefined' && window.fathom) {
-    window.fathom.trackGoal(event, value);
+  const w: any = typeof window !== 'undefined' ? window : undefined;
+
+  // Prefer Fathom event goals by name
+  if (w?.fathom?.trackEvent) {
+    try {
+      if (typeof value === 'number') {
+        w.fathom.trackEvent(String(event), { value });
+      } else {
+        w.fathom.trackEvent(String(event));
+      }
+      return;
+    } catch {
+      // Swallow and fall back to dev logging
+    }
   }
-  
-  // Fallback to console in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`Analytics Event: ${event}`, value ? { value } : '');
+
+  // Dev logging fallback
+  if (import.meta.env?.DEV) {
+    console.log(`Analytics Event (dev): ${event}`, value ? { value } : '');
   }
 };

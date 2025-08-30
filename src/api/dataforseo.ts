@@ -64,7 +64,9 @@ export class DataForSEOService {
 
       return volumes;
     } catch (error) {
-      console.error('Failed to get search volumes:', error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Failed to get search volumes:', error);
+      }
       return {};
     }
   }
@@ -123,7 +125,9 @@ export class DataForSEOService {
 
       return { mapPackPosition, organicPosition };
     } catch (error) {
-      console.error(`Failed to get rankings for ${keyword}:`, error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error(`Failed to get rankings for ${keyword}:`, error);
+      }
       return { mapPackPosition: null, organicPosition: null };
     }
   }
@@ -150,7 +154,9 @@ export class DataForSEOService {
       // Default to US if city not found
       return 2840;
     } catch (error) {
-      console.error(`Failed to get location code for ${location}:`, error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error(`Failed to get location code for ${location}:`, error);
+      }
       return 2840; // Default to US
     }
   }
@@ -159,7 +165,7 @@ export class DataForSEOService {
    * Make authenticated request to DataForSEO API
    */
   private async makeRequest(endpoint: string, data: any): Promise<any> {
-    const auth = btoa(`${this.config.login}:${this.config.password}`);
+    const auth = Buffer.from(`${this.config.login}:${this.config.password}`).toString('base64');
     
     const response = await fetch(`${this.config.baseUrl}${endpoint}`, {
       method: 'POST',
@@ -192,22 +198,30 @@ export const getDataForSEORankings = async (
   const password = process.env.DATAFORSEO_PASSWORD || '';
   
   if (!login || !password) {
-    console.error('DataForSEO credentials not configured');
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('DataForSEO credentials not configured');
+    }
     throw new Error('DataForSEO credentials not configured');
   }
 
   const service = new DataForSEOService(login, password);
   
   try {
-    console.log('Getting search volumes for keywords:', keywords);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Getting search volumes for keywords:', keywords);
+    }
     const searchVolumes = await service.getSearchVolumes(keywords);
-    console.log('Search volumes:', searchVolumes);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Search volumes:', searchVolumes);
+    }
 
     const rankings: SEORanking[] = [];
     
     // Get rankings for each keyword
     for (const keyword of keywords) {
-      console.log(`Checking rankings for: ${keyword}`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`Checking rankings for: ${keyword}`);
+      }
       const { mapPackPosition, organicPosition } = await service.getLocalPackRankings(
         keyword, 
         city, 
@@ -230,10 +244,14 @@ export const getDataForSEORankings = async (
       });
     }
     
-    console.log('Final SEO rankings:', rankings);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Final SEO rankings:', rankings);
+    }
     return rankings;
   } catch (error) {
-    console.error('Failed to get DataForSEO rankings:', error);
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('Failed to get DataForSEO rankings:', error);
+    }
     throw error;
   }
 };

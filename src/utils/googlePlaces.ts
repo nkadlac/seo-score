@@ -44,11 +44,11 @@ export class GooglePlacesService {
 
   async initialize(): Promise<boolean> {
     return new Promise((resolve) => {
-      console.log('Initializing Google Places API...');
+      if (import.meta.env.DEV) console.log('Initializing Google Places API...');
       
       // Check if Google Places is already loaded
       if (window.google?.maps?.places) {
-        console.log('Google Places API already loaded');
+        if (import.meta.env.DEV) console.log('Google Places API already loaded');
         this.setupServices();
         resolve(true);
         return;
@@ -57,11 +57,11 @@ export class GooglePlacesService {
       // Check if script is already loading
       const existingScript = document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]');
       if (existingScript) {
-        console.log('Google Places script already loading, waiting...');
+        if (import.meta.env.DEV) console.log('Google Places script already loading, waiting...');
         // Script is already loading, wait for it
         const checkLoaded = setInterval(() => {
           if (window.google?.maps?.places) {
-            console.log('Google Places API loaded successfully');
+            if (import.meta.env.DEV) console.log('Google Places API loaded successfully');
             clearInterval(checkLoaded);
             this.setupServices();
             resolve(true);
@@ -70,7 +70,7 @@ export class GooglePlacesService {
         
         // Timeout after 10 seconds
         setTimeout(() => {
-          console.log('Google Places API load timeout');
+          if (import.meta.env.DEV) console.log('Google Places API load timeout');
           clearInterval(checkLoaded);
           resolve(false);
         }, 10000);
@@ -85,10 +85,10 @@ export class GooglePlacesService {
         return;
       }
 
-      console.log('Loading Google Places API with key:', apiKey.substring(0, 10) + '...');
+      // Do not log API key in production
 
       window.initGooglePlaces = () => {
-        console.log('Google Places API callback triggered');
+        if (import.meta.env.DEV) console.log('Google Places API callback triggered');
         this.setupServices();
         resolve(true);
       };
@@ -98,11 +98,11 @@ export class GooglePlacesService {
       script.async = true;
       script.defer = true;
       script.onerror = () => {
-        console.error('Failed to load Google Places API script. Using static suggestions.');
+        if (import.meta.env.DEV) console.error('Failed to load Google Places API script. Using static suggestions.');
         resolve(false);
       };
       document.head.appendChild(script);
-      console.log('Google Places API script added to page');
+      if (import.meta.env.DEV) console.log('Google Places API script added to page');
     });
   }
 
@@ -115,21 +115,23 @@ export class GooglePlacesService {
   }
 
   async searchBusinesses(query: string): Promise<{ suggestions: string[]; businessData?: BusinessData }> {
-    console.log('searchBusinesses called with query:', query);
-    console.log('isLoaded:', this.isLoaded, 'autocompleteService:', !!this.autocompleteService);
+    if (import.meta.env.DEV) {
+      console.log('searchBusinesses called with query:', query);
+      console.log('isLoaded:', this.isLoaded, 'autocompleteService:', !!this.autocompleteService);
+    }
     
     // Always return static suggestions immediately if Google Places isn't loaded
     if (!this.isLoaded || !this.autocompleteService) {
-      console.log('Google Places not loaded, using static suggestions');
+      if (import.meta.env.DEV) console.log('Google Places not loaded, using static suggestions');
       return this.getStaticSuggestions(query);
     }
 
-    console.log('Using Google Places API for search');
+    if (import.meta.env.DEV) console.log('Using Google Places API for search');
     // Use real Google Places API now that Maps JavaScript API is enabled
     return new Promise((resolve) => {
       // Set a reasonable timeout for better UX
       const timeout = setTimeout(() => {
-        console.log('Google Places API timeout, falling back to static suggestions');
+        if (import.meta.env.DEV) console.log('Google Places API timeout, falling back to static suggestions');
         resolve(this.getStaticSuggestions(query));
       }, 2000);
 
@@ -147,13 +149,13 @@ export class GooglePlacesService {
             .slice(0, 5)
             .map(p => p.description);
           
-          console.log('Google Places API results:', suggestions);
+          if (import.meta.env.DEV) console.log('Google Places API results:', suggestions);
           
           // Get detailed business data for the first result (most relevant)
           const firstPrediction = predictions[0];
           if (firstPrediction) {
             this.getPlaceDetails(firstPrediction.place_id).then(businessData => {
-              console.log('Business data captured:', businessData);
+              if (import.meta.env.DEV) console.log('Business data captured:', businessData);
               resolve({ suggestions, businessData });
             }).catch(() => {
               resolve({ suggestions });
@@ -162,7 +164,7 @@ export class GooglePlacesService {
             resolve({ suggestions });
           }
         } else {
-          console.log('Google Places API failed with status:', status, 'falling back to static');
+          if (import.meta.env.DEV) console.log('Google Places API failed with status:', status, 'falling back to static');
           resolve(this.getStaticSuggestions(query));
         }
       });

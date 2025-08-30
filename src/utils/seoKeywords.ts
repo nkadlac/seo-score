@@ -206,7 +206,7 @@ export const checkSEORankings = async (
   city: string = 'Milwaukee, WI'
 ): Promise<SEORanking[]> => {
   try {
-    console.log('Calling SEO rankings API...');
+    if (import.meta.env.DEV) console.log('Calling SEO rankings API...');
     const response = await fetch('/api/seo-rankings', {
       method: 'POST',
       headers: {
@@ -226,14 +226,14 @@ export const checkSEORankings = async (
     const data = await response.json();
     
     if (data.success && data.rankings) {
-      console.log('Real SEO rankings received:', data.rankings);
+      if (import.meta.env.DEV) console.log('Real SEO rankings received:', data.rankings);
       return data.rankings;
     } else {
       throw new Error(data.error || 'Invalid API response');
     }
 
   } catch (error) {
-    console.error('Failed to get real SEO rankings, falling back to mock data:', error);
+    if (import.meta.env.DEV) console.error('Failed to get real SEO rankings, falling back to mock data:', error);
     
     // Fallback to mock data if API fails
     return keywords.map((keyword) => {

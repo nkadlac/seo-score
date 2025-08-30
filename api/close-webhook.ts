@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { QuizAnswers, ScoreResult } from '../src/types/quiz';
 
 /**
  * Close.com CRM Integration
@@ -11,11 +12,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const { answers, result, email }: {
-      answers: any;
-      result: any;
+    const { answers, result, email } = req.body as {
+      answers: QuizAnswers;
+      result: ScoreResult;
       email: string;
-    } = req.body;
+    };
     
     // Validate required fields
     if (!answers || !result || !email) {
@@ -36,7 +37,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.log('Creating Close.com lead for:', email);
 
     // Create lead in Close.com using the exact format that works
-    const auth = btoa(closeApiKey + ':');
+    const auth = Buffer.from(closeApiKey + ':').toString('base64');
     const closeResponse = await fetch('https://api.close.com/api/v1/lead/', {
       method: 'POST',
       headers: {

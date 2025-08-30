@@ -1,0 +1,91 @@
+# Cursor Rules — Pipeline 100 Readiness Check™
+
+## Mission & Scope
+- Goal: Build and iterate a lead‑magnet web app that assesses flooring contractors’ lead‑gen readiness and captures qualified leads for Floorplay’s $4k/mo service.
+- Priorities: UX clarity → reliability → performance → polish. Never trade correctness for flash.
+- Out of scope: CMS migration, multi‑tenant dashboards, and homeowner‑facing flows.
+
+## Tech & Architecture
+- Stack: React 18 + TypeScript + Vite, TailwindCSS, shadcn/ui, React Hook Form (+ Zod), Vercel functions for integrations, Fathom Analytics.
+- Structure: Keep existing folders and aliases.
+  - `src/components/*` UI, `src/components/ui/*` shadcn primitives
+  - `src/utils/*` business logic (scoring, analytics, SEO, places)
+  - `src/api/*` client helpers; `api/*` Vercel serverless endpoints
+  - `src/types/quiz.ts` single source of truth for types
+- Do not rename or reshuffle files without a clear reason.
+
+## Coding Standards
+- TypeScript strict: add/maintain precise types; no `any` unless justified and localized.
+- Components: functional React with hooks, no class components.
+- Styling: Tailwind utility classes; prefer shadcn/ui components before custom CSS.
+- Utilities: use `cn` from `@/lib/utils` for class merging; prefer `clsx`/`tailwind-merge` patterns already present.
+- Accessibility: keyboard navigability, labels, roles, ARIA for composite widgets (autocomplete listbox/option, etc.).
+- Copy: professional B2B tone; concise, benefit‑led; avoid hype.
+- Env safety: never expose server secrets to the client; Vite client vars must be prefixed with `VITE_`.
+
+## Data & Integrations
+- Analytics (Fathom):
+  - Event names live in `AnalyticsEvents`; call `trackEvent(...)` at quiz start, completion, result view, pro score request, calendar view/book.
+  - Fathom script is loaded via `VITE_FATHOM_SITE_ID` (see `src/setupAnalytics.ts`).
+- Close.com & Kit.com:
+  - Client calls `fetch('/api/*')`; serverless handlers in `api/*` perform authenticated requests.
+  - Use Node‑safe base64: `Buffer.from(key + ':').toString('base64')` (do not use `btoa` in server code).
+  - Validate payloads; never log raw secrets; handle non‑200 responses with helpful errors.
+- DataForSEO:
+  - Credentials via server env only (`DATAFORSEO_LOGIN`, `DATAFORSEO_PASSWORD`).
+  - Heavy network calls stay in serverless (e.g., `api/seo-rankings.ts` → `src/api/dataforseo.ts`).
+
+## Quiz & Scoring (Authoritative Rules)
+- Questions (7): business+city, services, radius, response time, SMS capability, premium pages, review velocity.
+- Score bands: green ≥85, yellow ≥70, orange ≥55, else red.
+- Forecast strings and thresholds must match `src/utils/scoring.ts`.
+- Top 3 Moves: always return exactly three, prioritized by impact × speed:
+  1) Missed‑call text‑back + SMS autoresponder (if response time >15m or SMS≠both)
+  2) Ship service pages (if premiumPages≠all)
+  3) 40‑review sprint (if reviews ≤7)
+  4) City pages (if radius small or single service)
+  5+) GBP cleanup, financing CTA + trust, tracking enablement
+- Any change to scoring or move logic requires explicit business sign‑off.
+
+## UX & Content
+- Visual: professional, low‑friction, mobile‑first; leverage shadcn Card, Button, Input, Radio/Checkbox, Progress.
+- Results: clear score, color band, forecast, Top 3 Moves, concise service recommendation.
+- Emails/CTAs: “Pro Score + 30‑Day Move Map” capture; communicate value, time scope, and privacy (no spam).
+- Accessibility: readable contrasts, focus rings, keyboard flows; autocomplete lists must use listbox/option roles.
+
+## SEO & Meta
+- index.html must include: title, meta description, canonical, OG/Twitter tags, theme‑color.
+- Provide `public/robots.txt` and `public/sitemap.xml`; add a branded `og:image` when available.
+
+## Env & Deployment
+- Required server env (Vercel): `CLOSE_API_KEY`, `KIT_API_KEY`, `DATAFORSEO_LOGIN`, `DATAFORSEO_PASSWORD`.
+- Required client env: `VITE_GOOGLE_PLACES_API_KEY`, `VITE_FATHOM_SITE_ID`.
+- Local dev: prefer `vercel dev` to exercise `/api/*`; or add a Vite proxy if needed.
+
+## Performance & Reliability
+- Keep initial bundle lean; avoid large client deps for server‑only work.
+- Use timeouts/fallbacks for external APIs; maintain a pleasant UX when data is missing.
+- Guard network calls; log concise diagnostics without leaking sensitive info.
+
+## Definition of Done (DoD)
+- Meets acceptance criteria for feature, passes type checks and lint.
+- Maintains scoring rules, analytics events, and accessibility patterns.
+- Works on mobile Safari/Chrome; no console errors; graceful API error handling.
+- Adds/updates docs if behavior or configuration changes.
+
+## PR/Commit Guidance
+- Small, focused changes; clear intent in messages (what/why, not how).
+- Avoid unrelated refactors; do not reformat the codebase.
+- Include before/after notes for UX‑visible changes.
+
+## Do / Don’t
+- Do: prefer shadcn/ui, keep TS types tight, add ARIA for custom widgets, use Buffer base64 on server, keep secrets server‑side.
+- Don’t: introduce breaking scoring tweaks, mix client/server envs, add heavyweight libs for simple UI, remove analytics, or degrade mobile UX.
+
+## Quick References
+- Types: `src/types/quiz.ts`
+- Scoring: `src/utils/scoring.ts`
+- Analytics: `src/utils/analytics.ts`
+- SEO keywords/rankings: `src/utils/seoKeywords.ts`, `api/seo-rankings.ts`
+- Integrations: `api/close-webhook.ts`, `api/kit-webhook.ts`, client helpers in `src/api/*`
+

@@ -22,6 +22,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
   const [businessSearch, setBusinessSearch] = useState(answers.businessName || '');
   const [citySearch, setCitySearch] = useState(answers.city || '');
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState<number>(-1);
   const [businessData, setBusinessData] = useState<any>(null);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [showCityField, setShowCityField] = useState(!!answers.businessName); // Show city field if business already entered
@@ -132,7 +133,9 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
       try {
         // Now using real Google Places API
         const result = await googlePlacesService.searchBusinesses(value);
-        setSuggestions(result.suggestions || []);
+        const newSuggestions = result.suggestions || [];
+        setSuggestions(newSuggestions);
+        setActiveSuggestionIndex(newSuggestions.length > 0 ? 0 : -1);
         
         // Handle business data if available
         if ('businessData' in result && result.businessData) {
@@ -152,6 +155,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
       }
     } else {
       setSuggestions([]);
+      setActiveSuggestionIndex(-1);
       setIsLoadingSuggestions(false);
     }
   };
@@ -160,6 +164,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
     setBusinessSearch(suggestion);
     setValue('businessName', suggestion);
     setSuggestions([]);
+    setActiveSuggestionIndex(-1);
     
     // Extract city from suggestion - handle different formats
     let cityPart = '';
@@ -208,6 +213,25 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
     }
   };
 
+  const onBusinessKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
+    if (suggestions.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveSuggestionIndex((prev) => (prev + 1) % suggestions.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveSuggestionIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length);
+    } else if (e.key === 'Enter') {
+      if (activeSuggestionIndex >= 0 && activeSuggestionIndex < suggestions.length) {
+        e.preventDefault();
+        selectSuggestion(suggestions[activeSuggestionIndex]);
+      }
+    } else if (e.key === 'Escape') {
+      setSuggestions([]);
+      setActiveSuggestionIndex(-1);
+    }
+  };
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -241,8 +265,13 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
                   value={businessSearch}
                   onChange={(e) => handleBusinessSearch(e.target.value)}
                   onBlur={() => setTimeout(() => setSuggestions([]), 200)}
+                  onKeyDown={onBusinessKeyDown}
                   placeholder="e.g. Premium Coatings Milwaukee or just your business name..."
                   className="h-12"
+                  aria-autocomplete="list"
+                  aria-controls="business-suggestions"
+                  aria-expanded={suggestions.length > 0}
+                  aria-activedescendant={activeSuggestionIndex >= 0 ? `business-option-${activeSuggestionIndex}` : undefined}
                 />
                 
                 {isLoadingSuggestions && (
@@ -252,7 +281,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
                 )}
                 
                 {suggestions.length > 0 && (
-                  <Card className="absolute z-10 w-full mt-1">
+                  <Card className="absolute z-10 w-full mt-1" role="listbox" aria-label="Business suggestions" id="business-suggestions" aria-live="polite">
                     <CardContent className="p-0">
                       {suggestions.map((suggestion, index) => (
                         <button
@@ -260,6 +289,10 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
                           type="button"
                           onClick={() => selectSuggestion(suggestion)}
                           className="w-full text-left px-4 py-3 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground first:rounded-t-md last:rounded-b-md border-b border-border last:border-b-0"
+                          role="option"
+                          id={`business-option-${index}`}
+                          aria-selected={activeSuggestionIndex === index}
+                          onMouseEnter={() => setActiveSuggestionIndex(index)}
                         >
                           <div className="flex items-center gap-2">
                             <span className="text-blue-500">📍</span>

@@ -23,10 +23,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Get Kit API credentials from environment
     const kitApiKey = process.env.KIT_API_KEY;
-    const kitApiSecret = process.env.KIT_API_SECRET;
-    
-    if (!kitApiKey && !kitApiSecret) {
-      console.error('Kit.com API credentials not configured');
+    if (!kitApiKey) {
+      console.error('Kit.com API key not configured');
       return res.status(500).json({ 
         error: 'Kit.com integration not configured' 
       });
@@ -43,7 +41,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Kit-Api-Key': kitApiKey || '',
+        'X-Kit-Api-Key': kitApiKey,
       },
       body: JSON.stringify({
         email_address: payload.email,
@@ -91,7 +89,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'X-Kit-Api-Key': kitApiKey || '',
+              'X-Kit-Api-Key': kitApiKey,
             },
             body: JSON.stringify({
               email_address: payload.email
