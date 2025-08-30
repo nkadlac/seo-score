@@ -35,6 +35,15 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
     }
   });
 
+  // Manually register custom (non-native) fields so watch/setValue work reliably
+  useEffect(() => {
+    register('radius');
+    register('responseTime');
+    register('smsCapability');
+    register('premiumPages');
+    register('reviewCount');
+  }, [register]);
+
   // Watch form values for validation  
   const watchedRadius = watch('radius');
   const watchedResponseTime = watch('responseTime');
@@ -393,7 +402,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
             </div>
             
             <RadioGroup
-              onValueChange={(value) => setValue('radius', parseInt(value))}
+              onValueChange={(value) => setValue('radius', parseInt(value), { shouldDirty: true, shouldTouch: true })}
               value={watchedRadius?.toString() || ''}
               className="space-y-3"
             >
@@ -405,7 +414,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
                 <Card 
                   key={option.value} 
                   className="cursor-pointer transition-colors hover:bg-accent select-none"
-                  onClick={() => setValue('radius', parseInt(option.value))}
+                  onClick={() => setValue('radius', parseInt(option.value), { shouldDirty: true, shouldTouch: true })}
                 >
                   <CardContent className="flex items-center space-x-3 p-4">
                     <RadioGroupItem value={option.value} id={`radius-${option.value}`} />
@@ -437,7 +446,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
             </div>
             
             <RadioGroup
-              onValueChange={(value) => setValue('responseTime', parseInt(value))}
+              onValueChange={(value) => setValue('responseTime', parseInt(value), { shouldDirty: true, shouldTouch: true })}
               value={watchedResponseTime?.toString() || ''}
               className="space-y-3"
             >
@@ -450,7 +459,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
                 <Card 
                   key={option.value} 
                   className="cursor-pointer transition-colors hover:bg-accent select-none"
-                  onClick={() => setValue('responseTime', parseInt(option.value))}
+                  onClick={() => setValue('responseTime', parseInt(option.value), { shouldDirty: true, shouldTouch: true })}
                 >
                   <CardContent className="flex items-center justify-between p-4">
                     <div className="flex items-center space-x-3">
@@ -493,7 +502,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
             </div>
             
             <RadioGroup
-              onValueChange={(value) => setValue('smsCapability', value as any)}
+              onValueChange={(value) => setValue('smsCapability', value as any, { shouldDirty: true, shouldTouch: true })}
               value={watchedSmsCapability || ''}
               className="space-y-3"
             >
@@ -506,7 +515,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
                 <Card 
                   key={option.value} 
                   className="cursor-pointer transition-colors hover:bg-accent select-none"
-                  onClick={() => setValue('smsCapability', option.value as any)}
+                  onClick={() => setValue('smsCapability', option.value as any, { shouldDirty: true, shouldTouch: true })}
                 >
                   <CardContent className="flex items-center space-x-3 p-4">
                     <RadioGroupItem value={option.value} id={`sms-${option.value}`} />
@@ -538,7 +547,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
             </div>
             
             <RadioGroup
-              onValueChange={(value) => setValue('premiumPages', value as any)}
+              onValueChange={(value) => setValue('premiumPages', value as any, { shouldDirty: true, shouldTouch: true })}
               value={watchedPremiumPages || ''}
               className="space-y-3"
             >
@@ -550,7 +559,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
                 <Card 
                   key={option.value} 
                   className="cursor-pointer transition-colors hover:bg-accent select-none"
-                  onClick={() => setValue('premiumPages', option.value as any)}
+                  onClick={() => setValue('premiumPages', option.value as any, { shouldDirty: true, shouldTouch: true })}
                 >
                   <CardContent className="flex items-center space-x-3 p-4">
                     <RadioGroupItem value={option.value} id={`pages-${option.value}`} />
@@ -582,7 +591,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
             </div>
             
             <RadioGroup
-              onValueChange={(value) => setValue('reviewCount', parseInt(value))}
+              onValueChange={(value) => setValue('reviewCount', parseInt(value), { shouldDirty: true, shouldTouch: true })}
               value={watchedReviewCount?.toString() || ''}
               className="space-y-3"
             >
@@ -595,7 +604,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
                 <Card 
                   key={option.value} 
                   className="cursor-pointer transition-colors hover:bg-accent select-none"
-                  onClick={() => setValue('reviewCount', parseInt(option.value))}
+                  onClick={() => setValue('reviewCount', parseInt(option.value), { shouldDirty: true, shouldTouch: true })}
                 >
                   <CardContent className="flex items-center space-x-3 p-4">
                     <RadioGroupItem value={option.value} id={`review-${option.value}`} />
