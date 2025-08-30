@@ -209,9 +209,9 @@ export default function ResultsPage({ result, seoIntelligence, city, onRequestPr
       {(() => {
         const labelForMove = (move: string): string => {
           const m = move.toLowerCase();
-          if (m.includes('missed-call') || m.includes('autoresponder') || m.includes('text-back')) return 'Speed to contact';
-          if (m.includes('service pages') || m.includes('polyurea') || m.includes('decorative') || m.includes('epoxy') || m.includes('city pages') || m.includes('publish 6 city')) return 'Content';
-          if (m.includes('review')) return 'Build Trust';
+          if (m.includes('missed-call') || m.includes('autoresponder') || m.includes('text-back')) return 'Speed-to-Lead';
+          if (m.includes('service pages') || m.includes('polyurea') || m.includes('decorative') || m.includes('epoxy') || m.includes('city pages') || m.includes('publish 6 city')) return 'Conversion Pages';
+          if (m.includes('review')) return 'Social Proof';
           return 'Optimization';
         };
         return (
