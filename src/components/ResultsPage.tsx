@@ -490,9 +490,10 @@ export default function ResultsPage({ result, seoIntelligence, city, onRequestPr
                   {result.topMoves.map((move, index) => {
                     const labelForMove = (move: string): string => {
                       const m = move.toLowerCase();
+                      // Prioritize explicit review/social-proof signals first to avoid false matches (e.g., 'epoxy' inside examples)
+                      if (m.includes('review')) return 'Social Proof';
                       if (m.includes('missed-call') || m.includes('autoresponder') || m.includes('text-back')) return 'Speed to lead';
                       if (m.includes('service pages') || m.includes('polyurea') || m.includes('decorative') || m.includes('epoxy')) return 'Conversion Pages';
-                      if (m.includes('review')) return 'Social Proof';
                       return 'Optimization';
                     };
 
