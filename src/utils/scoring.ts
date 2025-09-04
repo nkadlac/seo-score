@@ -175,8 +175,9 @@ export const getTopMoves = (answers: QuizAnswers, _score: number): string[] => {
   }
   
   if (answers.reviewCount <= 7) {
+    const cityExample = (answers.city || '').split(',')[0]?.trim() || 'your city';
     moves.push({ 
-      move: "Earn 15+ fresh Google reviews in 45 days. Ask customers to mention the job type and city (e.g., 'epoxy garage floor in Mequon').", 
+      move: `Earn 15+ fresh Google reviews in 45 days. Ask customers to mention the job type and city (e.g., 'epoxy garage floor in ${cityExample}').`, 
       priority: 3 
     });
   }

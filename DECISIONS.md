@@ -19,3 +19,10 @@
 - Change: `getForecast(score, avgTicketOverride?)` now accepts an optional average ticket. `calculateScore` passes the market‑specific value from `answers.city` via `getAvgTicketForCity` in `src/utils/cityData.ts`.
 - Why: Different metros and suburbs have different average job sizes; this aligns pipeline estimates with local economics.
 - Data source: `cityData.ts` includes optional `avgTicket` per market and a helper `getAvgTicketForCity(city)`; default is $10,000 when unknown.
+
+## 2025-09-04 — Dynamic city in review example
+
+- Change: The Top Moves copy for reviews now interpolates the user's city instead of a hardcoded example ("Mequon").
+- Where: `src/utils/scoring.ts` `getTopMoves` — formats as e.g., "epoxy garage floor in <City>"; falls back to "your city" when unknown.
+- Why: Personalization; improves relevance without affecting scoring thresholds or priorities.
+- Invariants: Scoring math and band thresholds unchanged; only string formatting updated.

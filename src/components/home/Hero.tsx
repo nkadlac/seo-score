@@ -16,7 +16,7 @@ export function Hero({ onStart }: HeroProps) {
 
   return (
     <section aria-labelledby="hero-title" className="bg-white">
-      <div className="pl-8 lg:pl-20 py-16 w-full">
+      <div className="pl-8 lg:pl-20 pt-28 pb-16 w-full">
         <div className="max-w-2xl space-y-8">
           <div className="space-y-3">
             <p className="text-brand text-[24px] font-work-sans font-normal tracking-[-0.48px] leading-[1.3]">
