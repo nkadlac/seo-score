@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { verifyResultToken } from '../src/utils/resultToken';
+import { verifyResultToken } from '../../src/utils/resultToken';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -18,7 +18,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const apiKey = process.env.KIT_API_KEY;
     if (!apiKey) {
-      // If Kit is not configured, acknowledge request gracefully
       return res.status(200).json({ success: true, queued: false });
     }
 

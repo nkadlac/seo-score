@@ -12,6 +12,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "baseUrl": "..",
+    "types": ["@vercel/node"],
     "paths": {
       "@/*": ["./src/*"]
     }

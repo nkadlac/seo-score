@@ -135,7 +135,7 @@ export class DataForSEOServerService {
         throw new Error(`DataForSEO API error: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       
       if (data.tasks?.[0]?.result) {
         // Find city in the results (case insensitive search)

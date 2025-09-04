@@ -54,7 +54,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }),
     });
 
-    const closeData = await closeResponse.json();
+    const closeData: any = await closeResponse.json();
 
     if (!closeResponse.ok) {
       console.error('Close.com API error:', closeData);

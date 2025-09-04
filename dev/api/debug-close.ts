@@ -8,7 +8,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // Test btoa function with trimmed key
     const trimmedKey = closeApiKey.trim();
     const auth = Buffer.from(trimmedKey + ':').toString('base64');
     
@@ -31,3 +30,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 }
+
