@@ -59,11 +59,10 @@ export function HeroImage() {
       <img
         src={heroImage}
         alt=""
-        fetchpriority="high"
+        fetchPriority="high"
         decoding="async"
         className="h-screen w-full object-cover"
       />
       <div className="absolute inset-0 bg-blue-600/60" />
     </section>
   )}
-

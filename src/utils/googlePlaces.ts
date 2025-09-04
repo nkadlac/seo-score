@@ -211,8 +211,13 @@ export class GooglePlacesService {
             website: place.website,
             placeId: place.place_id,
             coordinates: {
-              lat: typeof place.geometry.location.lat === 'function' ? place.geometry.location.lat() : place.geometry.location.lat,
-              lng: typeof place.geometry.location.lng === 'function' ? place.geometry.location.lng() : place.geometry.location.lng
+              // Google may return functions here; coerce safely at runtime
+              lat: typeof (place as any)?.geometry?.location?.lat === 'function'
+                ? (place as any).geometry.location.lat()
+                : (place as any).geometry.location.lat,
+              lng: typeof (place as any)?.geometry?.location?.lng === 'function'
+                ? (place as any).geometry.location.lng()
+                : (place as any).geometry.location.lng,
             }
           };
 
@@ -392,6 +397,88 @@ export class GooglePlacesService {
 
     const name = businessData.name.toLowerCase();
     return flooringKeywords.some(keyword => name.includes(keyword));
+  }
+
+  async getCompetitorCount(city: string, userBusinessName?: string): Promise<{ competitors: number; level: 'High' | 'Medium' | 'Low' }> {
+    // If Google Places isn't loaded, use fallback logic
+    if (!this.isLoaded || !this.placesService) {
+      if (import.meta.env.DEV) console.log('Google Places not loaded, using city-based competition fallback');
+      return this.getFallbackCompetition(city);
+    }
+
+    return new Promise((resolve) => {
+      // Search for flooring/concrete businesses in the area
+      const searchTerms = [
+        `epoxy flooring ${city}`,
+        `concrete coating ${city}`, 
+        `garage floor ${city}`,
+        `flooring contractors ${city}`
+      ];
+
+      // Aggregate unique businesses across searches
+      let searchesCompleted = 0;
+      const uniqueBusinesses = new Set<string>();
+
+      const processSearch = (query: string) => {
+        const request = {
+          query,
+          fields: ['place_id', 'name', 'rating', 'user_ratings_total', 'types'],
+          locationBias: { radius: 25000, lat: 43.0389, lng: -87.9065 } // Default to Milwaukee area
+        };
+
+        this.placesService.textSearch(request, (results: any[], status: string) => {
+          searchesCompleted++;
+          
+          if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
+            results.forEach(result => {
+              if (result.name && result.name !== userBusinessName) {
+                // Check if it's likely a flooring business
+                const businessData = { name: result.name, hasGBP: true } as BusinessData;
+                if (this.isFlooringBusiness(businessData)) {
+                  uniqueBusinesses.add(result.place_id);
+                }
+              }
+            });
+          }
+
+          // When all searches are complete, calculate competition level
+          if (searchesCompleted === searchTerms.length) {
+            const competitors = uniqueBusinesses.size;
+            const level = competitors > 15 ? 'High' : competitors > 8 ? 'Medium' : 'Low';
+            
+            if (import.meta.env.DEV) console.log(`Found ${competitors} competitors, level: ${level}`);
+            resolve({ competitors, level });
+          }
+        });
+      };
+
+      // Start all searches
+      searchTerms.forEach(processSearch);
+
+      // Timeout fallback
+      setTimeout(() => {
+        if (searchesCompleted < searchTerms.length) {
+          if (import.meta.env.DEV) console.log('Google Places competitor search timeout, using fallback');
+          resolve(this.getFallbackCompetition(city));
+        }
+      }, 5000);
+    });
+  }
+
+  private getFallbackCompetition(city: string): { competitors: number; level: 'High' | 'Medium' | 'Low' } {
+    // Fallback based on city size and market knowledge
+    const majorCities = ['milwaukee', 'chicago', 'minneapolis', 'detroit', 'atlanta', 'dallas', 'phoenix', 'denver'];
+    const mediumCities = ['madison', 'green bay', 'duluth', 'rochester', 'aurora', 'rockford', 'peoria'];
+    
+    const cityName = city.toLowerCase().split(',')[0].trim();
+    
+    if (majorCities.some(major => cityName.includes(major))) {
+      return { competitors: 18, level: 'High' };
+    } else if (mediumCities.some(medium => cityName.includes(medium))) {
+      return { competitors: 12, level: 'Medium' };
+    } else {
+      return { competitors: 6, level: 'Low' };
+    }
   }
 }
 

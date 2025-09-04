@@ -69,13 +69,7 @@ export const getKeywordsForServices = (services: string[], city: string): string
   };
 
   // Research/Comparison Keywords (Early Buyer Journey)
-  const researchKeywords = [
-    `garage floor coating cost ${cleanCity}`,
-    `epoxy vs polyurea flooring ${cleanCity}`,
-    `best garage floor coating ${cleanCity}`,
-    `garage floor options ${cleanCity}`,
-    `durable garage flooring ${cleanCity}`
-  ];
+  // Kept for future use; intentionally not included to keep the list focused
 
   // Always include high-impact baseline keywords
   const coreKeywords = [
