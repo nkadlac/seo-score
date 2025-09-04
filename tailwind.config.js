@@ -6,7 +6,15 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        'big-shoulders': ['Big Shoulders Display', 'sans-serif'],
+        'work-sans': ['Work Sans', 'sans-serif'],
+      },
       colors: {
+        brand: '#0040ff',
+        ink: '#1a1309',
+        paper: '#f9f6f0',
+        red: '#ff0000',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',

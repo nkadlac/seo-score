@@ -79,10 +79,19 @@ export const getKeywordsForServices = (services: string[], city: string): string
 
   // Always include high-impact baseline keywords
   const coreKeywords = [
-    ...highIntentKeywords.slice(0, 3), // Top 3 contractor searches
-    ...problemBasedKeywords.slice(0, 3), // Top 3 problem searches
-    ...commercialKeywords.slice(0, 2), // Top 2 commercial searches
-    ...researchKeywords.slice(0, 2) // Top 2 research searches
+    ...highIntentKeywords.slice(0, 2), // Top 2 local contractor searches
+    ...problemBasedKeywords.slice(0, 2), // Top 2 local problem searches
+    ...commercialKeywords.slice(0, 1), // Top 1 commercial search
+  ];
+
+  // Add broader regional keywords (remove city for wider reach)
+  const regionalKeywords = [
+    'garage floor contractors',
+    'epoxy flooring contractors', 
+    'concrete coating companies',
+    'polyurea flooring',
+    'garage floor coating cost',
+    'best epoxy flooring'
   ];
 
   // Add service-specific keywords based on selected services
@@ -95,7 +104,7 @@ export const getKeywordsForServices = (services: string[], city: string): string
   });
 
   // Combine all keywords (15-20 total for comprehensive analysis)
-  return [...coreKeywords, ...selectedServiceKeywords];
+  return [...coreKeywords, ...regionalKeywords, ...selectedServiceKeywords.slice(0, 4)];
 };
 
 /**
@@ -162,6 +171,47 @@ export const getKeywordPriority = (
 };
 
 /**
+ * Generate SEO content recommendations based on keywords and current rankings
+ */
+export const getSEOContentRecommendations = (rankings: any[], services: string[]): string[] => {
+  const recommendations = [];
+  
+  // Service page recommendations
+  services.forEach(service => {
+    const serviceKeywords = rankings.filter(r => 
+      r.keyword.toLowerCase().includes(service.toLowerCase().replace(' ', ''))
+    );
+    
+    if (serviceKeywords.length > 0) {
+      recommendations.push(`Create comprehensive ${service} service page with cost calculator`);
+    }
+  });
+  
+  // Problem-solving content
+  const problemKeywords = rankings.filter(r => 
+    r.keyword.includes('repair') || r.keyword.includes('peeling') || r.keyword.includes('crack')
+  );
+  
+  if (problemKeywords.length > 0) {
+    recommendations.push('Write "Common Garage Floor Problems & Solutions" guide');
+  }
+  
+  // Local content
+  const hasLocalKeywords = rankings.some(r => r.searchVolume > 0);
+  if (!hasLocalKeywords) {
+    recommendations.push('Target broader regional keywords with city landing pages');
+  }
+  
+  // Cost/pricing content
+  const costKeywords = rankings.filter(r => r.keyword.includes('cost') || r.keyword.includes('price'));
+  if (costKeywords.length > 0) {
+    recommendations.push('Add transparent pricing page with cost factors');
+  }
+  
+  return recommendations.slice(0, 3); // Return top 3 recommendations
+};
+
+/**
  * Gets estimated search volumes for keywords (placeholder - would be replaced with real API)
  */
 export const getEstimatedSearchVolume = (keyword: string): number => {
@@ -203,7 +253,8 @@ export const getEstimatedSearchVolume = (keyword: string): number => {
 export const checkSEORankings = async (
   keywords: string[], 
   businessPlaceId: string,
-  city: string = 'Milwaukee, WI'
+  city: string = 'Milwaukee, WI',
+  businessDomain?: string
 ): Promise<SEORanking[]> => {
   try {
     if (import.meta.env.DEV) console.log('Calling SEO rankings API...');
@@ -215,7 +266,8 @@ export const checkSEORankings = async (
       body: JSON.stringify({
         keywords,
         businessPlaceId,
-        city
+        city,
+        businessDomain
       }),
     });
 
@@ -226,6 +278,7 @@ export const checkSEORankings = async (
     const data = await response.json();
     
     if (data.success && data.rankings) {
+      if (import.meta.env.DEV) console.log('SEO rankings source:', data.source || response.headers.get('X-SEO-Source'));
       if (import.meta.env.DEV) console.log('Real SEO rankings received:', data.rankings);
       return data.rankings;
     } else {

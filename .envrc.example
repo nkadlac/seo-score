@@ -4,6 +4,7 @@
 # Client (exposed to Vite build)
 export VITE_GOOGLE_PLACES_API_KEY="your_google_places_api_key"
 export VITE_FATHOM_SITE_ID="your_fathom_site_id"
+export VITE_CALENDAR_LINK="floorplay/15min"
 
 # Server (Vercel / serverless only)
 export CLOSE_API_KEY="your_close_com_api_key"
@@ -20,6 +21,11 @@ export FIRECRAWL_MCP_COMMAND="npx mcp-server-firecrawl"
 export PERPLEXITY_API_KEY="your_perplexity_api_key"
 # e.g., npx mcp-server-perplexity or an installed binary name
 export PERPLEXITY_MCP_COMMAND="npx mcp-server-perplexity"
+
+# Figma MCP (optional)
+export FIGMA_API_TOKEN="your_figma_pat"
+export FIGMA_FILE_KEY="0DG8dXiK0gIkvBj1dHPYiB"
+export FIGMA_TEAM_ID=""
 
 # Optional Node/Vite tuning
 export NODE_ENV=development

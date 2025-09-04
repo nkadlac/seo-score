@@ -74,7 +74,7 @@ export class DataForSEOService {
   /**
    * Get local pack rankings for a specific keyword and location
    */
-  async getLocalPackRankings(keyword: string, location: string, businessPlaceId?: string): Promise<{
+  async getLocalPackRankings(keyword: string, location: string, businessPlaceId?: string, businessDomain?: string): Promise<{
     mapPackPosition: number | null;
     organicPosition: number | null;
   }> {
@@ -114,9 +114,9 @@ export class DataForSEOService {
           }
           
           // Check if this is an organic result
-          if (item.type === 'organic' && businessPlaceId) {
-            // Match by domain or other identifiers (this is simplified)
-            if (item.domain && item.domain.includes(businessPlaceId.substring(0, 10))) {
+          if (item.type === 'organic') {
+            // Prefer domain match when provided
+            if (businessDomain && item.domain && item.domain.includes(businessDomain.replace(/^https?:\/\//, '').split('/')[0])) {
               organicPosition = item.rank_absolute;
             }
           }
@@ -166,15 +166,17 @@ export class DataForSEOService {
    */
   private async makeRequest(endpoint: string, data: any): Promise<any> {
     const auth = Buffer.from(`${this.config.login}:${this.config.password}`).toString('base64');
-    
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000); // 5s network guard
     const response = await fetch(`${this.config.baseUrl}${endpoint}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Basic ${auth}`
       },
-      body: JSON.stringify(data)
-    });
+      body: JSON.stringify(data),
+      signal: controller.signal
+    }).finally(() => clearTimeout(timeout));
 
     if (!response.ok) {
       throw new Error(`DataForSEO API error: ${response.status} ${response.statusText}`);
@@ -191,7 +193,8 @@ export class DataForSEOService {
 export const getDataForSEORankings = async (
   keywords: string[],
   businessPlaceId: string,
-  city: string
+  city: string,
+  businessDomain?: string
 ): Promise<SEORanking[]> => {
   // These credentials should be loaded from environment variables in your backend
   const login = process.env.DATAFORSEO_LOGIN || '';
@@ -225,7 +228,8 @@ export const getDataForSEORankings = async (
       const { mapPackPosition, organicPosition } = await service.getLocalPackRankings(
         keyword, 
         city, 
-        businessPlaceId
+        businessPlaceId,
+        businessDomain
       );
       
       const searchVolume = searchVolumes[keyword] || 0;

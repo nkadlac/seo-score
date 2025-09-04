@@ -42,6 +42,9 @@ VITE_FATHOM_SITE_ID=your_fathom_site_id
 
 # Optional: Development
 NODE_ENV=development
+
+# Tokens (server)
+RESULTS_TOKEN_SECRET=change_me
 ```
 
 ### Getting API Keys
@@ -78,7 +81,11 @@ src/
 │   └── quiz.ts          # TypeScript interfaces
 └── api/                 # Integration endpoints
     ├── close-webhook.ts # CRM lead creation
-    └── kit-webhook.ts   # Email automation trigger
+    ├── kit-webhook.ts   # Email automation trigger
+    ├── quiz/start.ts    # Create quizId for session
+    ├── quiz/submit.ts   # Score answers, fan out integrations, return token
+    ├── results/[token].ts # Verify token and return summary
+    └── email-report.ts  # Send result summary via email
 ```
 
 ## Business Context

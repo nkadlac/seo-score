@@ -19,7 +19,6 @@ export const sendToKit = async (
       full_name: answers.fullName,
       business_name: answers.businessName,
       top_move_1: result.topMoves[0] || '',
-      guarantee_status: result.guaranteeStatus,
       // GBP Intelligence for email personalization
       gbp_rating: answers.businessData?.rating,
       gbp_review_count: answers.businessData?.reviewCount,

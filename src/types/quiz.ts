@@ -12,6 +12,21 @@ export interface BusinessData {
   coordinates?: { lat: number; lng: number };
 }
 
+// Session and routing identifiers
+export type QuizId = string; // e.g., qz_ABC123
+export type ResultToken = string; // HMAC-signed, used in /r/:token
+
+export type Branch = 'sub100k' | '100k_offer';
+
+export interface UtmParams {
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_content?: string;
+  utm_term?: string;
+  ref?: string;
+}
+
 export interface SEORanking {
   keyword: string;
   searchVolume: number;
@@ -46,7 +61,6 @@ export interface ScoreResult {
   score: number;
   band: ScoreBand;
   forecast: string;
-  guaranteeStatus: string;
   topMoves: string[];
 }
 
@@ -58,6 +72,7 @@ export interface CityData {
     suburbs: string[];
     population: number;
     serviceRadius: number;
+    avgTicket?: number; // optional market-specific average ticket size
     coordinates?: [number, number];
   };
 }
@@ -107,7 +122,6 @@ export interface KitWebhookPayload {
     full_name: string;
     business_name: string;
     top_move_1: string;
-    guarantee_status: string;
     // GBP Intelligence
     gbp_rating?: number;
     gbp_review_count?: number;
@@ -117,4 +131,37 @@ export interface KitWebhookPayload {
     seo_missed_leads?: number;
     seo_top_opportunity?: string;
   };
+}
+
+// Result summary used for tokens and result pages (no PII)
+export interface ResultSummary {
+  quizId: QuizId;
+  branch: Branch;
+  score: number;
+  band: ScoreBand;
+  scoreBucket: string; // e.g., "70-79"
+  forecast: string;
+  topMoves: string[]; // exactly 3
+}
+
+// Token payload that will be signed server-side
+export interface ResultTokenPayload extends ResultSummary {
+  v: 1; // version for future-proofing
+}
+
+// API contracts
+export interface QuizStartResponse { quizId: QuizId }
+
+export interface QuizSubmitPayload {
+  quizId: QuizId;
+  email: string;
+  answers: QuizAnswers;
+  utm?: UtmParams;
+  consent?: boolean;
+}
+
+export interface QuizSubmitResponse {
+  resultToken: ResultToken;
+  resultPath: string; // e.g., "/r/<token>"
+  branch: Branch;
 }

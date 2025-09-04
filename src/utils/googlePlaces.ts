@@ -85,7 +85,7 @@ export class GooglePlacesService {
         return;
       }
 
-      // Do not log API key in production
+      console.log('Google Places API key found:', apiKey ? 'Yes (length: ' + apiKey.length + ')' : 'No');
 
       window.initGooglePlaces = () => {
         if (import.meta.env.DEV) console.log('Google Places API callback triggered');
@@ -94,11 +94,14 @@ export class GooglePlacesService {
       };
 
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGooglePlaces&loading=async`;
+      const scriptUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGooglePlaces&loading=async`;
+      console.log('Loading Google Maps script from:', scriptUrl.replace(apiKey, 'API_KEY_HIDDEN'));
+      script.src = scriptUrl;
       script.async = true;
       script.defer = true;
-      script.onerror = () => {
-        if (import.meta.env.DEV) console.error('Failed to load Google Places API script. Using static suggestions.');
+      script.onerror = (error) => {
+        console.error('Failed to load Google Places API script:', error);
+        console.error('Check: 1) API key is valid, 2) APIs are enabled, 3) Domain is authorized');
         resolve(false);
       };
       document.head.appendChild(script);
@@ -176,6 +179,7 @@ export class GooglePlacesService {
       const request = {
         placeId,
         fields: [
+          'place_id',
           'name',
           'formatted_address',
           'geometry',
@@ -189,6 +193,7 @@ export class GooglePlacesService {
       };
 
       this.placesService.getDetails(request, (place: GooglePlaceResult, status: string) => {
+        console.log('Google Places getDetails response:', { place, status, place_id: place?.place_id });
         if (status === window.google.maps.places.PlacesServiceStatus.OK && place) {
           const addressParts = place.formatted_address.split(', ');
           const city = addressParts[addressParts.length - 3] || '';
@@ -206,8 +211,8 @@ export class GooglePlacesService {
             website: place.website,
             placeId: place.place_id,
             coordinates: {
-              lat: place.geometry.location.lat,
-              lng: place.geometry.location.lng
+              lat: typeof place.geometry.location.lat === 'function' ? place.geometry.location.lat() : place.geometry.location.lat,
+              lng: typeof place.geometry.location.lng === 'function' ? place.geometry.location.lng() : place.geometry.location.lng
             }
           };
 

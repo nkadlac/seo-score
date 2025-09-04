@@ -1,7 +1,7 @@
 // Vercel serverless function for SEO rankings
 // This will be deployed to /api/seo-rankings
 
-import { getDataForSEORankings } from '../src/api/dataforseo';
+import { getSEORankingsServer } from './lib/dataforseo-server.js';
 
 export default async function handler(req: any, res: any) {
   // Enable CORS
@@ -20,26 +20,30 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const { keywords, businessPlaceId, city } = req.body;
+    const { keywords, businessPlaceId, city, businessDomain } = req.body;
 
     if (!keywords || !businessPlaceId || !city) {
       res.status(400).json({ error: 'Missing required parameters: keywords, businessPlaceId, city' });
       return;
     }
 
-    console.log('SEO Rankings API called:', { keywords, businessPlaceId, city });
+    console.log('SEO Rankings API called:', { keywords, businessPlaceId, city, businessDomain });
 
     // Get real SEO rankings from DataForSEO
-    const rankings = await getDataForSEORankings(keywords, businessPlaceId, city);
+    const rankings = await getSEORankingsServer(keywords, businessPlaceId, city, businessDomain);
 
+    // Mark source for easier debugging
+    res.setHeader('X-SEO-Source', 'dataforseo');
     res.status(200).json({ 
       success: true, 
+      source: 'dataforseo',
       rankings,
       totalKeywords: keywords.length,
       city
     });
 
   } catch (error) {
+    // Surface a helpful error without leaking secrets
     console.error('SEO Rankings API error:', error);
     res.status(500).json({ 
       error: 'Failed to get SEO rankings',

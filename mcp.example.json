@@ -1,18 +1,7 @@
 {
   "mcpServers": {
-    "firecrawl": {
-      "command": "./scripts/run-firecrawl-mcp.sh",
-      "args": ["serve"],
-      "env": {
-        "FIRECRAWL_API_KEY": "${fc-16a6c9ecbb524b77b08c32e973ab9926}"
-      }
-    },
-    "perplexity": {
-      "command": "./scripts/run-perplexity-mcp.sh",
-      "args": ["serve"],
-      "env": {
-        "PERPLEXITY_API_KEY": "${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}"
-      }
+    "Figma": {
+      "url": "http://127.0.0.1:3845/mcp"
     }
   }
 }

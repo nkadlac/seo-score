@@ -10,16 +10,11 @@ export default function ProgressBar({ currentStep, totalSteps }: ProgressBarProp
 
   return (
     <div className="w-full mb-8">
-      <div className="flex justify-between items-center mb-3">
-        <span className="text-sm font-medium text-muted-foreground">
-          Question {currentStep} of {totalSteps}
-        </span>
-        <span className="text-sm font-medium text-muted-foreground">
-          {Math.round(progress)}%
-        </span>
+      <div className="flex justify-between items-center mb-2 text-ink/70">
+        <span className="text-sm">Question {currentStep} of {totalSteps}</span>
+        <span className="text-sm">{Math.round(progress)}%</span>
       </div>
-      
-      <Progress value={progress} className="h-2" />
+      <Progress value={progress} className="h-1.5" />
     </div>
   );
 }

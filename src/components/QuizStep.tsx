@@ -169,11 +169,23 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
     }
   };
 
-  const selectSuggestion = (suggestion: string) => {
+  const selectSuggestion = async (suggestion: string) => {
     setBusinessSearch(suggestion);
     setValue('businessName', suggestion);
     setSuggestions([]);
     setActiveSuggestionIndex(-1);
+    
+    // Get detailed business data for the selected suggestion
+    try {
+      const result = await googlePlacesService.searchBusinesses(suggestion);
+      if ('businessData' in result && result.businessData) {
+        setBusinessData(result.businessData);
+        setValue('businessData', result.businessData);
+        console.log('Business data set for selected suggestion:', JSON.stringify(result.businessData, null, 2));
+      }
+    } catch (error) {
+      console.error('Error getting business data for selection:', error);
+    }
     
     // Extract city from suggestion - handle different formats
     let cityPart = '';
@@ -247,10 +259,8 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-3xl font-bold mb-2">
-                Let's start with your business info
-              </h2>
-              <p className="text-muted-foreground mb-8">This helps us personalize your assessment</p>
+              <h2 className="text-3xl lg:text-4xl font-big-shoulders uppercase tracking-tight font-extrabold text-ink mb-2">Let’s start with your business info</h2>
+              <p className="text-ink/70 mb-8">This helps us personalize your assessment.</p>
             </div>
             
             <div className="space-y-4">
@@ -284,29 +294,26 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
                 />
                 
                 {isLoadingSuggestions && (
-                  <div className="absolute right-3 top-10 text-muted-foreground">
+                  <div className="absolute right-3 top-10 text-ink/50">
                     <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"></div>
                   </div>
                 )}
                 
                 {suggestions.length > 0 && (
-                  <Card className="absolute z-10 w-full mt-1" role="listbox" aria-label="Business suggestions" id="business-suggestions" aria-live="polite">
+                  <Card className="absolute z-10 w-full mt-1 border border-black/10" role="listbox" aria-label="Business suggestions" id="business-suggestions" aria-live="polite">
                     <CardContent className="p-0">
                       {suggestions.map((suggestion, index) => (
                         <button
                           key={index}
                           type="button"
                           onClick={() => selectSuggestion(suggestion)}
-                          className="w-full text-left px-4 py-3 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground first:rounded-t-md last:rounded-b-md border-b border-border last:border-b-0"
+                          className="w-full text-left px-4 py-3 hover:bg-paper focus:bg-paper first:rounded-t-md last:rounded-b-md border-b border-black/5 last:border-b-0"
                           role="option"
                           id={`business-option-${index}`}
                           aria-selected={activeSuggestionIndex === index}
                           onMouseEnter={() => setActiveSuggestionIndex(index)}
                         >
-                          <div className="flex items-center gap-2">
-                            <span className="text-blue-500">📍</span>
-                            <span>{suggestion}</span>
-                          </div>
+                          <div className="flex items-center gap-2 text-ink">{suggestion}</div>
                         </button>
                       ))}
                     </CardContent>
@@ -359,15 +366,13 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-3xl font-bold mb-2">
-                What are your priority services?
-              </h2>
-              <p className="text-muted-foreground mb-8">Select all that apply - we'll focus on these for lead generation</p>
+              <h2 className="text-3xl lg:text-4xl font-big-shoulders uppercase tracking-tight font-extrabold text-ink mb-2">What are your priority services?</h2>
+              <p className="text-ink/70 mb-8">Select all that apply — we’ll focus on these.</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {services.map((service) => (
-                <Card key={service} className="cursor-pointer transition-colors hover:bg-accent select-none">
+                <Card key={service} className="cursor-pointer transition-colors select-none bg-white border border-black/10 hover:bg-paper">
                   <CardContent className="flex items-center space-x-3 p-4">
                     <Checkbox
                       {...register('services')}
@@ -395,10 +400,8 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-3xl font-bold mb-2">
-                How far do you travel for $8k+ jobs?
-              </h2>
-              <p className="text-muted-foreground mb-8">This helps us understand your service area potential</p>
+              <h2 className="text-3xl lg:text-4xl font-big-shoulders uppercase tracking-tight font-extrabold text-ink mb-2">What’s your service radius?</h2>
+              <p className="text-ink/70 mb-8">Choose the range you actively serve for flooring jobs.</p>
             </div>
             
             <RadioGroup
@@ -413,7 +416,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
               ].map((option) => (
                 <Card 
                   key={option.value} 
-                  className="cursor-pointer transition-colors hover:bg-accent select-none"
+                  className="cursor-pointer transition-colors bg-white border border-black/10 hover:bg-paper select-none"
                   onClick={() => setValue('radius', parseInt(option.value), { shouldDirty: true, shouldTouch: true })}
                 >
                   <CardContent className="flex items-center space-x-3 p-4">
@@ -439,10 +442,8 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-3xl font-bold mb-2">
-                How fast do you typically respond to new leads?
-              </h2>
-              <p className="text-muted-foreground mb-8">Speed-to-lead is the #1 factor in conversion rates</p>
+              <h2 className="text-3xl lg:text-4xl font-big-shoulders uppercase tracking-tight font-extrabold text-ink mb-2">How fast do you respond to new leads?</h2>
+              <p className="text-ink/70 mb-8">Speed‑to‑lead is the #1 driver of booked jobs.</p>
             </div>
             
             <RadioGroup
@@ -458,7 +459,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
               ].map((option) => (
                 <Card 
                   key={option.value} 
-                  className="cursor-pointer transition-colors hover:bg-accent select-none"
+                  className="cursor-pointer transition-colors bg-white border border-black/10 hover:bg-paper select-none"
                   onClick={() => setValue('responseTime', parseInt(option.value), { shouldDirty: true, shouldTouch: true })}
                 >
                   <CardContent className="flex items-center justify-between p-4">
@@ -495,10 +496,8 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-3xl font-bold mb-2">
-                Do you have SMS capabilities set up?
-              </h2>
-              <p className="text-muted-foreground mb-8">Text messaging can increase response rates by 40%</p>
+              <h2 className="text-3xl lg:text-4xl font-big-shoulders uppercase tracking-tight font-extrabold text-ink mb-2">Do you have SMS follow‑up set up?</h2>
+              <p className="text-ink/70 mb-8">Missed‑call text‑back + autoresponder close 2–3x more leads.</p>
             </div>
             
             <RadioGroup
@@ -514,7 +513,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
               ].map((option) => (
                 <Card 
                   key={option.value} 
-                  className="cursor-pointer transition-colors hover:bg-accent select-none"
+                  className="cursor-pointer transition-colors bg-white border border-black/10 hover:bg-paper select-none"
                   onClick={() => setValue('smsCapability', option.value as any, { shouldDirty: true, shouldTouch: true })}
                 >
                   <CardContent className="flex items-center space-x-3 p-4">
@@ -540,10 +539,8 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-3xl font-bold mb-2">
-                Do you have dedicated pages for each service?
-              </h2>
-              <p className="text-muted-foreground mb-8">Service-specific pages convert 3x better than generic pages</p>
+              <h2 className="text-3xl lg:text-4xl font-big-shoulders uppercase tracking-tight font-extrabold text-ink mb-2">Do you have pages for each service?</h2>
+              <p className="text-ink/70 mb-8">Service‑specific pages convert 3× better than generic pages.</p>
             </div>
             
             <RadioGroup
@@ -558,7 +555,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
               ].map((option) => (
                 <Card 
                   key={option.value} 
-                  className="cursor-pointer transition-colors hover:bg-accent select-none"
+                  className="cursor-pointer transition-colors bg-white border border-black/10 hover:bg-paper select-none"
                   onClick={() => setValue('premiumPages', option.value as any, { shouldDirty: true, shouldTouch: true })}
                 >
                   <CardContent className="flex items-center space-x-3 p-4">
@@ -584,10 +581,8 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-3xl font-bold mb-2">
-                How many Google reviews have you gotten in the last 60 days?
-              </h2>
-              <p className="text-muted-foreground mb-8">Recent review velocity shows active customer satisfaction</p>
+              <h2 className="text-3xl lg:text-4xl font-big-shoulders uppercase tracking-tight font-extrabold text-ink mb-2">How many Google reviews in the last 60 days?</h2>
+              <p className="text-ink/70 mb-8">Recent review velocity signals active customer satisfaction.</p>
             </div>
             
             <RadioGroup
@@ -603,7 +598,7 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
               ].map((option) => (
                 <Card 
                   key={option.value} 
-                  className="cursor-pointer transition-colors hover:bg-accent select-none"
+                  className="cursor-pointer transition-colors bg-white border border-black/10 hover:bg-paper select-none"
                   onClick={() => setValue('reviewCount', parseInt(option.value), { shouldDirty: true, shouldTouch: true })}
                 >
                   <CardContent className="flex items-center space-x-3 p-4">
@@ -637,22 +632,11 @@ export default function QuizStep({ currentStep, answers, onNext, onPrev }: QuizS
         
         <div className="flex justify-between pt-8">
           {currentStep > 1 && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onPrev}
-              size="lg"
-            >
-              Previous
-            </Button>
+            <Button type="button" variant="outline" onClick={onPrev} size="lg" className="h-12 rounded-full focus-ring">Previous</Button>
           )}
           
-          <Button
-            type="submit"
-            size="lg"
-            className="ml-auto"
-          >
-            {currentStep === 7 ? 'Get My Score' : 'Next'}
+          <Button type="submit" size="lg" className="ml-auto h-12 rounded-full bg-brand hover:bg-brand/90 text-white focus-ring">
+            {currentStep === 7 ? 'Get my score' : 'Next'}
           </Button>
         </div>
       </form>

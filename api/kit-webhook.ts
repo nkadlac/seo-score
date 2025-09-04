@@ -52,7 +52,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           city: payload.fields.city,
           business_name: payload.fields.business_name,
           top_move_1: payload.fields.top_move_1,
-          guarantee_status: payload.fields.guarantee_status,
           
           // GBP Intelligence for personalization (only if fields exist)
           gbp_rating: payload.fields.gbp_rating?.toString() || '',
