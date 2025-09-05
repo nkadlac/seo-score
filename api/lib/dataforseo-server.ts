@@ -65,6 +65,19 @@ export class DataForSEOServerService {
   }
 
   /**
+   * Convenience: get search volumes for a human location string (city, ST)
+   */
+  async getSearchVolumesForLocation(keywords: string[], location: string): Promise<Record<string, number>> {
+    try {
+      const code = await this.getLocationCode(location);
+      return this.getSearchVolumes(keywords, code);
+    } catch (e) {
+      console.error('getSearchVolumesForLocation failed, falling back to US volumes', e);
+      return this.getSearchVolumes(keywords);
+    }
+  }
+
+  /**
    * Get local pack rankings for a specific keyword and location
    */
   async getLocalPackRankings(keyword: string, location: string, businessPlaceId?: string, businessDomain?: string): Promise<{

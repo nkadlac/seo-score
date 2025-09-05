@@ -449,27 +449,37 @@ export default function ResultsPage({ result, seoIntelligence, city, onRequestPr
                   </h3>
                 </div>
                 
-                <div className="space-y-4 sm:space-y-6">
-                  {seoIntelligence.rankings
-                    .slice(0)
+                {(() => {
+                  const nonZero = [...seoIntelligence.rankings]
+                    .filter(r => (r.missedLeadsPerMonth || 0) > 0)
                     .sort((a,b) => b.missedLeadsPerMonth - a.missedLeadsPerMonth)
                     .slice(0,3)
-                    .map((r, _i, arr) => {
-                      const max = arr[0].missedLeadsPerMonth || 1
-                      const pct = Math.round((r.missedLeadsPerMonth / max) * 100)
-                      return (
-                        <div key={r.keyword} className="space-y-1.5">
-                          <div className="flex justify-between items-center">
-                            <span className="font-work-sans text-ink text-base sm:text-[18px]">{r.keyword}</span>
-                            <span className="font-work-sans text-ink text-xs sm:text-base">{r.missedLeadsPerMonth} leads/mo</span>
-                          </div>
-                          <div className="h-4 bg-gray-300 rounded-[24px] w-full max-w-[1086px] overflow-hidden">
-                            <div className="h-full bg-brand rounded-[24px]" style={{ width: `${pct}%` }} />
-                          </div>
-                        </div>
-                      )
-                    })}
-                </div>
+                  if (nonZero.length > 0) {
+                    const max = nonZero[0].missedLeadsPerMonth || 1
+                    return (
+                      <div className="space-y-4 sm:space-y-6">
+                        {nonZero.map(r => {
+                          const pct = Math.round((r.missedLeadsPerMonth / max) * 100)
+                          return (
+                            <div key={r.keyword} className="space-y-1.5">
+                              <div className="flex justify-between items-center">
+                                <span className="font-work-sans text-ink text-base sm:text-[18px]">{r.keyword}</span>
+                                <span className="font-work-sans text-ink text-xs sm:text-base">{r.missedLeadsPerMonth} leads/mo</span>
+                              </div>
+                              <div className="h-4 bg-gray-300 rounded-[24px] w-full max-w-[1086px] overflow-hidden">
+                                <div className="h-full bg-brand rounded-[24px]" style={{ width: `${pct}%` }} />
+                              </div>
+                            </div>
+                          )
+                        })}
+                        {nonZero.length < 3 && (
+                          <div className="text-xs text-ink/60">Filtered zero‑volume terms</div>
+                        )}
+                      </div>
+                    )
+                  }
+                  return <FallbackOpportunities city={city} topMapPack={topMapPack?.mapPackPosition ?? null} />
+                })()}
               </div>
             )}
 
@@ -649,4 +659,64 @@ export default function ResultsPage({ result, seoIntelligence, city, onRequestPr
       </div>
     </div>
   );
+}
+
+function FallbackOpportunities({ city, topMapPack }: { city?: string; topMapPack: number | null }) {
+  const [volumes, setVolumes] = useState<Record<string, number> | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const keywords = [
+    'garage floor coating near me',
+    'epoxy garage floor near me',
+    'concrete coating near me',
+  ]
+
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      try {
+        const resp = await fetch('/api/seo-volumes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ keywords, city: city || '' })
+        })
+        if (!resp.ok) throw new Error('volumes request failed')
+        const json = await resp.json()
+        if (!cancelled) setVolumes(json.volumes || {})
+      } catch (e: any) {
+        if (!cancelled) setError(e?.message || 'failed')
+      }
+    }
+    if (city) load()
+    return () => { cancelled = true }
+  }, [city])
+
+  const items = keywords.map(k => ({ keyword: k, volume: volumes?.[k] ?? null }))
+  const allZeroOrNull = items.every(i => (i.volume ?? 0) === 0)
+
+  return (
+    <div className="space-y-4 sm:space-y-6">
+      <div className="text-ink/80 text-sm">
+        Local keywords show very low volume. Try broader intent terms that typically register in small markets.
+      </div>
+      <div className="space-y-2">
+        {items.map(i => (
+          <div key={i.keyword} className="flex justify-between items-center">
+            <span className="font-work-sans text-ink text-base sm:text-[18px]">{i.keyword}</span>
+            <span className="font-work-sans text-ink text-xs sm:text-base">
+              {i.volume == null ? (error ? '—' : '…') : `${i.volume} searches/mo`}
+            </span>
+          </div>
+        ))}
+      </div>
+      {(topMapPack == null || topMapPack > 3) && (
+        <div className="mt-2 p-3 rounded-md border border-black/10 bg-white">
+          <div className="text-ink font-semibold">GBP not in top 3</div>
+          <div className="text-ink/70 text-sm">Map Pack visibility can drive up to ~45% CTR on local searches. Fix categories, photos, posts, Q&A.</div>
+        </div>
+      )}
+      {allZeroOrNull && (
+        <div className="text-xs text-ink/60">Data via DataForSEO — some micro‑markets have sparse query data; focus efforts on GBP, reviews, and speed‑to‑lead while content seeds demand.</div>
+      )}
+    </div>
+  )
 }
